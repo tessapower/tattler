@@ -77,23 +77,10 @@ auto ViewerApp::InitWindow(float mainScale, LPCTSTR title) -> void
     wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wc.lpszClassName = m_className;
 
-    const ATOM atom = RegisterClassEx(&wc);
-    if (atom == 0)
+    if (!RegisterClassEx(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
     {
-        DWORD error = GetLastError();
-
-        // ERROR_CLASS_ALREADY_EXISTS (1410) is common - not necessarily fatal
-        if (error == ERROR_CLASS_ALREADY_EXISTS)
-        {
-            // Class already registered (maybe from previous run) - this is OK
-            OutputDebugString(TEXT("Window class already registered\n"));
-        }
-        else
-        {
-            // Actual error - throw exception
-            throw std::runtime_error("Failed to register window class: " +
-                                     std::to_string(error));
-        }
+        throw std::runtime_error("Failed to register window class: " +
+                                 std::to_string(GetLastError()));
     }
 
     // Calculate window size (includes borders and title bar)
@@ -114,22 +101,14 @@ auto ViewerApp::InitWindow(float mainScale, LPCTSTR title) -> void
         nullptr,                        // Handle to parent window
         nullptr,                        // Handle to menu
         m_hinstance, // Handle to instance to be associated with window
-        this         // Pass a pointer to this instance of Window and
-                     // be able to access it from the created h_wnd
+        this         // Pointer to this ViewerApp, retrieved in HandleMsgSetup
     );
 
-    // Handle creation failure
     if (!m_hwnd)
     {
-        DWORD error = GetLastError();
         throw std::runtime_error("Failed to create window: " +
-                                 std::to_string(error));
+                                 std::to_string(GetLastError()));
     }
-
-    // Note: title is LPCTSTR (wide string when UNICODE is defined)
-    // For console output, we'd need conversion, so using OutputDebugString
-    // instead
-    OutputDebugString(TEXT("Window created\n"));
 }
 
 auto ViewerApp::CleanupWindow() -> void
