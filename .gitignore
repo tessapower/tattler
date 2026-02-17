@@ -40,6 +40,9 @@ CTestTestfile.cmake
 # FetchContent downloads
 _deps/
 
+# vcpkg installed packages (regenerated from vcpkg.json)
+vcpkg_installed/
+
 # OS
 Thumbs.db
 desktop.ini
