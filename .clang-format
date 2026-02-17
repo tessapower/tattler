@@ -1,0 +1,64 @@
+# clang-format configuration for Microsoft C++ conventions
+# Based on LLVM style, customized to match Windows/DirectX coding standards
+
+BasedOnStyle: LLVM
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+
+# Line length
+ColumnLimit: 80
+
+# Braces - Allman style (braces on new line)
+BreakBeforeBraces: Allman
+
+# Pointer and reference alignment
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+# Namespaces
+NamespaceIndentation: None
+CompactNamespaces: false
+
+# Functions
+AllowShortFunctionsOnASingleLine: Empty
+AlwaysBreakAfterReturnType: None
+
+# Control statements
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Spacing
+SpaceAfterCStyleCast: false
+SpaceBeforeParens: ControlStatements
+SpaceBeforeAssignmentOperators: true
+SpaceInEmptyParentheses: false
+
+# Other
+AlignConsecutiveAssignments: false
+AlignTrailingComments: true
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+
+# Includes - IMPORTANT: Keep stdafx.h/pch at top
+SortIncludes: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  # Priority 0: Precompiled headers (stdafx.h, pch.h) - always first
+  - Regex:           '^"stdafx\.h"$'
+    Priority:        0
+  # Priority 1: Main module header (matching .cpp file)
+  - Regex:           '^".*\.h"$'
+    Priority:        1
+  # Windows/DirectX headers
+  - Regex:           '^<(windows|d3d|dxgi)'
+    Priority:        2
+  # Priority 2: Project headers
+  - Regex:           '^".*"$'
+    Priority:        3
+  # Priority 3: System headers
+  - Regex:           '^<.*>$'
+    Priority:        4
