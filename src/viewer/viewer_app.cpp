@@ -62,7 +62,6 @@ auto ViewerApp::Init(HINSTANCE hInstance, LPCTSTR title) -> bool
 
 auto ViewerApp::InitWindow(float mainScale, LPCTSTR title) -> void
 {
-    // Register window class
     constexpr DWORD WINDOW_STYLE =
         WS_OVERLAPPED | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU;
     constexpr DWORD WINDOW_EX_STYLE = WS_EX_OVERLAPPEDWINDOW;
@@ -148,9 +147,6 @@ auto ViewerApp::InitImGui(float mainScale) -> bool
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    (void)io; // Avoid unused variable warning
-
-    // Enable keyboard controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
     // Load Roboto at the DPI-scaled pixel size with oversampling for sharpness
@@ -307,9 +303,7 @@ auto ViewerApp::HandleMsg(HWND hwnd, UINT uMsg, WPARAM wParam,
     {
         PAINTSTRUCT ps;
         BeginPaint(hwnd, &ps);
-        // Do nothing, DX12 handles rendering
         EndPaint(hwnd, &ps);
-
         return 0;
     }
 

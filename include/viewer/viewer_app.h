@@ -9,15 +9,22 @@ class ViewerApp
     ViewerApp();
     ~ViewerApp();
 
-    // Delete copy constructor and assignment operator to prevent copying of the
-    // app instance
     ViewerApp(const ViewerApp&) = delete;
     ViewerApp& operator=(const ViewerApp&) = delete;
 
+    /// <summary>
+    /// Initialise the Win32 window, D3D12 renderer, and Dear ImGui context.
+    /// </summary>
     auto Init(HINSTANCE hInstance, LPCTSTR title) -> bool;
 
+    /// <summary>
+    /// Enter the main message loop. Returns the exit code from WM_QUIT.
+    /// </summary>
     auto Run() -> int;
 
+    /// <summary>
+    /// Tear down ImGui, the renderer, and the Win32 window in order.
+    /// </summary>
     auto Shutdown() -> void;
 
   private:

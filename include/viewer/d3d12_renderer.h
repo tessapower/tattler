@@ -67,6 +67,7 @@ class D3D12Renderer
         return m_srvHeap.Get();
     }
 
+    // Non-const: ImGui writes through this pointer during alloc/free callbacks
     auto GetSrvHeapAllocator() -> SrvDescriptorAllocator*
     {
         return &m_srvHeapAllocator;
