@@ -19,7 +19,7 @@ struct SrvDescriptorAllocator
     D3D12_CPU_DESCRIPTOR_HANDLE m_cpuStart = {};
     D3D12_GPU_DESCRIPTOR_HANDLE m_gpuStart = {};
     UINT m_incrementSize = 0;
-    ImVector<int> m_freeIndices;
+    std::vector<int> m_freeIndices;
 
     /// <summary>
     /// Snapshot the heap's base handles and build a free-list of every slot.
@@ -35,8 +35,8 @@ struct SrvDescriptorAllocator
         m_cpuStart = heap->GetCPUDescriptorHandleForHeapStart();
         m_gpuStart = heap->GetGPUDescriptorHandleForHeapStart();
         m_incrementSize = device->GetDescriptorHandleIncrementSize(m_type);
-        m_freeIndices.reserve((int)desc.NumDescriptors);
-        for (int n = desc.NumDescriptors; n > 0; n--)
+        m_freeIndices.reserve(static_cast<size_t>(desc.NumDescriptors));
+        for (int n = static_cast<int>(desc.NumDescriptors); n > 0; n--)
             m_freeIndices.push_back(n - 1);
     }
 
