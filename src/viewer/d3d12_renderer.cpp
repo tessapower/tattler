@@ -248,12 +248,23 @@ auto D3D12Renderer::WaitForGpu() -> void
         m_fenceValues[i] = waitValue + 1;
 }
 
-auto D3D12Renderer::Shutdown() -> void {
-    // Wait for GPU to finish before releasing resources
+auto D3D12Renderer::Shutdown() -> void
+{
     WaitForGpu();
 
-    // Resources will be released automatically by ComPtr destructors in
-    // reverse order of creation, so no need to manually release them here
+    // Close kernel handles that ComPtr doesn't manage
+    if (m_fenceEvent)
+    {
+        CloseHandle(m_fenceEvent);
+        m_fenceEvent = nullptr;
+    }
+    if (m_swapChainWaitableObject)
+    {
+        CloseHandle(m_swapChainWaitableObject);
+        m_swapChainWaitableObject = nullptr;
+    }
+
+    // ComPtr destructors release all D3D12/DXGI objects automatically
 }
 
 } // namespace tattler
