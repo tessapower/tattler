@@ -7,7 +7,9 @@
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_win32.h"
 
-#include <d3d12.h>
+// Forward-declared in imgui_impl_win32.h behind a comment block
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT,
+                                                              WPARAM, LPARAM);
 
 namespace tattler
 {
@@ -273,8 +275,6 @@ auto ViewerApp::HandleMsg(HWND hwnd, UINT uMsg, WPARAM wParam,
                        LPARAM lParam) noexcept -> LRESULT
 {
     // Let ImGui process input first — if it handles the event, skip our logic
-    extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT,
-                                                                  WPARAM, LPARAM);
     if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
         return true;
 
