@@ -42,7 +42,7 @@ auto ViewerApp::Init(HINSTANCE hInstance, LPCTSTR title) -> bool
                           static_cast<UINT>(clientRect.right - clientRect.left),
                           static_cast<UINT>(clientRect.bottom - clientRect.top)))
     {
-        m_renderer.get()->Shutdown();
+        m_renderer->Shutdown();
         CleanupWindow();
 
         return false;
@@ -53,7 +53,7 @@ auto ViewerApp::Init(HINSTANCE hInstance, LPCTSTR title) -> bool
 
     if (!InitImGui(mainScale))
     {
-        m_renderer.get()->Shutdown();
+        m_renderer->Shutdown();
         CleanupWindow();
 
         return false;
@@ -166,12 +166,12 @@ auto ViewerApp::InitImGui(float mainScale) -> bool
     ImGui_ImplWin32_Init(m_hwnd);
 
     ImGui_ImplDX12_InitInfo initInfo = {};
-    initInfo.Device = m_renderer.get()->GetDevice();
-    initInfo.CommandQueue = m_renderer.get()->GetCommandQueue();
+    initInfo.Device = m_renderer->GetDevice();
+    initInfo.CommandQueue = m_renderer->GetCommandQueue();
     initInfo.NumFramesInFlight = D3D12Renderer::BUFFER_COUNT;
     initInfo.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
     initInfo.DSVFormat = DXGI_FORMAT_UNKNOWN;
-    initInfo.SrvDescriptorHeap = m_renderer.get()->GetSrvHeap();
+    initInfo.SrvDescriptorHeap = m_renderer->GetSrvHeap();
 
     // Use the renderer's SRV allocator via UserData so lambdas stay captureless
     initInfo.UserData = m_renderer->GetSrvHeapAllocator();
