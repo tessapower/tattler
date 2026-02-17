@@ -1,8 +1,9 @@
 #pragma once
 
-#include "imgui.h"
-
 #include <d3d12.h>
+
+#include <cassert>
+#include <vector>
 
 namespace tattler
 {

@@ -2,7 +2,6 @@
 
 #include "viewer/viewer_app.h"
 #include "viewer/d3d12_renderer.h"
-#include "viewer/srv_descriptor_allocator.h"
 
 #include "imgui.h"
 #include "imgui_impl_dx12.h"

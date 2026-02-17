@@ -1,9 +1,5 @@
 #pragma once
 
-#include <d3d12.h>
-
-#include <imgui.h>
-
 namespace tattler
 {
 
