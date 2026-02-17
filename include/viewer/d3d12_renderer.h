@@ -90,7 +90,7 @@ class D3D12Renderer
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvHeap;
     SrvDescriptorAllocator m_srvHeapAllocator;
-    static const int SRV_HEAP_SIZE = 64;
+    static constexpr int SRV_HEAP_SIZE = 64;
 
     // Per-frame command recording
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandList;
