@@ -259,26 +259,19 @@ auto ViewerApp::HandleMsg(HWND hwnd, UINT uMsg, WPARAM wParam,
 
     switch (uMsg)
     {
-    case WM_DESTROY: // Sent when the window is being destroyed
-    case WM_CLOSE:   // Sent when the window is being closed
-    case WM_QUIT:    // Sent when the application is quitting
-    {
-        PostQuitMessage(0);
-
+    case WM_CLOSE:
+        DestroyWindow(hwnd);
         return 0;
-    }
 
-    case WM_NCDESTROY: // Sent when the non-client area of the window is being
-                       // destroyed (after WM_DESTROY)
-    {
-        // Restore original window procedure
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        return 0;
+
+    case WM_NCDESTROY:
         SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
-        PostQuitMessage(0);
-
         return 0;
-    }
 
-    case WM_PAINT: // Windows accumulates invalid regions if unhandled
+    case WM_PAINT:
     {
         PAINTSTRUCT ps;
         BeginPaint(hwnd, &ps);
@@ -286,7 +279,6 @@ auto ViewerApp::HandleMsg(HWND hwnd, UINT uMsg, WPARAM wParam,
         return 0;
     }
 
-    case WM_KILLFOCUS: // Sent when the window loses keyboard focus
     default:
         return DefWindowProc(hwnd, uMsg, wParam, lParam);
     }
