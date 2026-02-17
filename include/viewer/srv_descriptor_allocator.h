@@ -28,7 +28,7 @@ struct SrvDescriptorAllocator
     /// </summary>
     void Create(ID3D12Device* device, ID3D12DescriptorHeap* heap, UINT cap)
     {
-        IM_ASSERT(m_heap == nullptr && m_freeIndices.empty());
+        assert(m_heap == nullptr && m_freeIndices.empty());
         m_heap = heap;
         D3D12_DESCRIPTOR_HEAP_DESC desc = heap->GetDesc();
         m_type = desc.Type;
