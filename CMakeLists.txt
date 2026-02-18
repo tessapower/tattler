@@ -86,3 +86,32 @@ if(TATTLER_BUILD_VIEWER)
         COMMENT "Copying resources to build directory"
     )
 endif()
+
+# --------------------------------------------------------------------------
+# Tests — Google Test (via FetchContent)
+# --------------------------------------------------------------------------
+option(TATTLER_BUILD_TESTS "Build tests" ON)
+if(TATTLER_BUILD_TESTS)
+    enable_testing()
+
+    include(FetchContent)
+    FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/releases/download/v1.17.0/googletest-1.17.0.tar.gz
+    )
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+
+    file(GLOB_RECURSE TEST_SOURCES tests/*.cpp)
+    add_executable(tattler_tests ${TEST_SOURCES})
+    target_include_directories(tattler_tests PRIVATE include)
+    target_link_libraries(tattler_tests PRIVATE
+        tattler_common
+        GTest::gtest
+        GTest::gtest_main
+    )
+    target_precompile_headers(tattler_tests REUSE_FROM tattler_common)
+
+    include(GoogleTest)
+    gtest_discover_tests(tattler_tests)
+endif()
