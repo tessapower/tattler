@@ -88,7 +88,7 @@ if(TATTLER_BUILD_VIEWER)
 endif()
 
 # --------------------------------------------------------------------------
-# Tests — Google Test (via FetchContent)
+# Google Test
 # --------------------------------------------------------------------------
 option(TATTLER_BUILD_TESTS "Build tests" ON)
 if(TATTLER_BUILD_TESTS)
