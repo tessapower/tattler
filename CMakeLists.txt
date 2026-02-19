@@ -85,6 +85,34 @@ if(TATTLER_BUILD_VIEWER)
         ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:tattler>/resources
         COMMENT "Copying resources to build directory"
     )
+
+    # Font Awesome icon font
+    include(FetchContent)
+    FetchContent_Declare(
+        IconFontCppHeaders
+        GIT_REPOSITORY https://github.com/juliettef/IconFontCppHeaders.git
+        GIT_TAG        main
+        GIT_SHALLOW    TRUE
+    )
+    FetchContent_Declare(
+        fontawesome_free
+        URL https://github.com/FortAwesome/Font-Awesome/releases/download/6.7.2/fontawesome-free-6.7.2-web.zip
+    )
+    FetchContent_MakeAvailable(IconFontCppHeaders fontawesome_free)
+
+    # Locate the TTF regardless of the zip's internal directory nesting
+    file(GLOB_RECURSE FA_TTF_SOLID "${fontawesome_free_SOURCE_DIR}/fa-solid-900.ttf")
+    list(GET FA_TTF_SOLID 0 FA_TTF_SOLID)
+
+    target_include_directories(tattler PRIVATE "${iconfontcppheaders_SOURCE_DIR}")
+
+    add_custom_command(TARGET tattler POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:tattler>/resources/fonts"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${FA_TTF_SOLID}"
+            "$<TARGET_FILE_DIR:tattler>/resources/fonts/fa-solid-900.ttf"
+        COMMENT "Copying Font Awesome Solid TTF to build directory"
+    )
 endif()
 
 # --------------------------------------------------------------------------
