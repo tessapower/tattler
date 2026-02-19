@@ -218,7 +218,7 @@ auto ViewerApp::RenderFrame() -> void
         {
             // m_processLauncher.ShowDialog();
         }
-        if (ImGui::Button("Capture"))
+        if (ImGui::Button("Capture ▶"))
         {
             // Connect pipe
             if (m_pipeConnected)
