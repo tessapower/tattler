@@ -9,8 +9,8 @@
 #include "viewer/viewer_app.h"
 
 // Forward-declared in imgui_impl_win32.h behind a comment block
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT,
-                                                              WPARAM, LPARAM);
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM,
+                                                             LPARAM);
 
 namespace tattler
 {
@@ -39,9 +39,9 @@ auto ViewerApp::Init(HINSTANCE hInstance, LPCTSTR title) -> bool
     // dimensions of the client area, not the logical (pre-DPI) size
     RECT clientRect;
     GetClientRect(m_hwnd, &clientRect);
-    if (!m_renderer->Init(m_hwnd,
-                          static_cast<UINT>(clientRect.right - clientRect.left),
-                          static_cast<UINT>(clientRect.bottom - clientRect.top)))
+    if (!m_renderer->Init(
+            m_hwnd, static_cast<UINT>(clientRect.right - clientRect.left),
+            static_cast<UINT>(clientRect.bottom - clientRect.top)))
     {
         m_renderer->Shutdown();
         CleanupWindow();
@@ -157,7 +157,7 @@ auto ViewerApp::InitImGui(float mainScale) -> bool
 
     // Load Roboto at the DPI-scaled pixel size with oversampling for sharpness
     io.Fonts->AddFontFromFileTTF("resources/fonts/Roboto-Regular.ttf",
-                                  16.0f * mainScale);
+                                 16.0f * mainScale);
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -185,18 +185,15 @@ auto ViewerApp::InitImGui(float mainScale) -> bool
            D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_handle,
            D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_handle)
     {
-        auto* allocator =
-            static_cast<SrvDescriptorAllocator*>(info->UserData);
+        auto* allocator = static_cast<SrvDescriptorAllocator*>(info->UserData);
         allocator->Alloc(out_cpu_handle, out_gpu_handle);
     };
 
-    initInfo.SrvDescriptorFreeFn =
-        [](ImGui_ImplDX12_InitInfo* info,
-           D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle,
-           D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle)
+    initInfo.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo* info,
+                                      D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle,
+                                      D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle)
     {
-        auto* allocator =
-            static_cast<SrvDescriptorAllocator*>(info->UserData);
+        auto* allocator = static_cast<SrvDescriptorAllocator*>(info->UserData);
         allocator->Free(cpu_handle, gpu_handle);
     };
 
@@ -248,7 +245,7 @@ auto ViewerApp::RenderFrame() -> void
 }
 
 auto __stdcall ViewerApp::HandleMsgSetup(HWND hwnd, UINT uMsg, WPARAM wParam,
-                                      LPARAM lParam) noexcept -> LRESULT
+                                         LPARAM lParam) noexcept -> LRESULT
 {
     if (uMsg == WM_NCCREATE)
     {
@@ -270,7 +267,7 @@ auto __stdcall ViewerApp::HandleMsgSetup(HWND hwnd, UINT uMsg, WPARAM wParam,
 }
 
 auto __stdcall ViewerApp::MsgThunk(HWND hwnd, UINT uMsg, WPARAM wParam,
-                                LPARAM lParam) noexcept -> LRESULT
+                                   LPARAM lParam) noexcept -> LRESULT
 {
     // Get a pointer to the window associated with the given h_wnd
     const auto pWindow =
@@ -281,7 +278,7 @@ auto __stdcall ViewerApp::MsgThunk(HWND hwnd, UINT uMsg, WPARAM wParam,
 }
 
 auto ViewerApp::HandleMsg(HWND hwnd, UINT uMsg, WPARAM wParam,
-                       LPARAM lParam) noexcept -> LRESULT
+                          LPARAM lParam) noexcept -> LRESULT
 {
     // Let ImGui process input first — if it handles the event, skip our logic
     if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
