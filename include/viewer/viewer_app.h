@@ -7,8 +7,8 @@
 #include "viewer/style.h"
 #include "viewer/texture_preview_panel.h"
 
-#include <thread>
 #include <atomic>
+#include <thread>
 
 namespace tattler
 {
@@ -38,7 +38,7 @@ class ViewerApp
     auto Shutdown() -> void;
 
   private:
-    // Win32
+    //-------------------------------------------------------------- WIN32 --//
     HWND m_hwnd = nullptr;
     HINSTANCE m_hinstance = nullptr;
     UINT m_width = 960;
@@ -49,12 +49,15 @@ class ViewerApp
     std::atomic<bool> m_pipeConnected = false;
 
     auto InitWindow(float mainScale, LPCTSTR title) -> void;
+
     auto CleanupWindow() -> void;
 
     static auto WINAPI HandleMsgSetup(HWND hwnd, UINT uMsg, WPARAM wParam,
                                       LPARAM lParam) noexcept -> LRESULT;
+
     static auto WINAPI MsgThunk(HWND hwnd, UINT uMsg, WPARAM wParam,
                                 LPARAM lParam) noexcept -> LRESULT;
+
     auto HandleMsg(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) noexcept
         -> LRESULT;
 

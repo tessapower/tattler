@@ -49,7 +49,6 @@ auto ViewerApp::Init(HINSTANCE hInstance, LPCTSTR title) -> bool
     {
         m_renderer->Shutdown();
         CleanupWindow();
-
         return false;
     }
 
@@ -65,9 +64,8 @@ auto ViewerApp::Init(HINSTANCE hInstance, LPCTSTR title) -> bool
     }
 
     if (!m_pipeServer.Create())
-    {
         throw std::runtime_error("Failed to create pipe server");
-    }
+
     // Connect to the pipe immediately — the hook will wait until a connection
     // is made before sending messages, so this ensures we don't miss any
     // messages sent early in the capture process (e.g. StartCapture)
@@ -130,8 +128,7 @@ auto ViewerApp::InitWindow(float mainScale, LPCTSTR title) -> void
         nullptr,                        // Handle to parent window
         nullptr,                        // Handle to menu
         m_hinstance, // Handle to instance to be associated with window
-        this         // Pointer to this ViewerApp, retrieved in HandleMsgSetup
-    );
+        this);       // Pointer to this ViewerApp, retrieved in HandleMsgSetup
 
     if (!m_hwnd)
     {
@@ -160,7 +157,7 @@ auto ViewerApp::InitImGui(float mainScale) -> bool
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-    // Load Roboto at the DPI-scaled pixel size with oversampling for sharpness
+    // Load Roboto at the DPI-scaled pixel size
     io.Fonts->AddFontFromFileTTF("resources/fonts/Roboto-Regular.ttf",
                                  16.0f * mainScale);
 
@@ -191,7 +188,6 @@ auto ViewerApp::InitImGui(float mainScale) -> bool
     initInfo.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
     initInfo.DSVFormat = DXGI_FORMAT_UNKNOWN;
     initInfo.SrvDescriptorHeap = m_renderer->GetSrvHeap();
-
     // Use the renderer's SRV allocator via UserData so lambdas stay captureless
     initInfo.UserData = m_renderer->GetSrvHeapAllocator();
 
@@ -200,16 +196,16 @@ auto ViewerApp::InitImGui(float mainScale) -> bool
            D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_handle,
            D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_handle)
     {
-        auto* allocator = static_cast<SrvDescriptorAllocator*>(info->UserData);
-        allocator->Alloc(out_cpu_handle, out_gpu_handle);
+        static_cast<SrvDescriptorAllocator*>(info->UserData)
+            ->Alloc(out_cpu_handle, out_gpu_handle);
     };
 
     initInfo.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo* info,
                                       D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle,
                                       D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle)
     {
-        auto* allocator = static_cast<SrvDescriptorAllocator*>(info->UserData);
-        allocator->Free(cpu_handle, gpu_handle);
+        static_cast<SrvDescriptorAllocator*>(info->UserData)
+            ->Free(cpu_handle, gpu_handle);
     };
 
     ImGui_ImplDX12_Init(&initInfo);
@@ -236,12 +232,9 @@ auto ViewerApp::RenderFrame() -> void
 
         if (ImGui::Button(ICON_FA_PLAY " Capture"))
         {
-            // Connect pipe
             if (m_pipeConnected)
-            {
                 m_pipeServer.SendMessage(
                     PipeProtocol::MessageType::StartCapture, nullptr, 0);
-            }
         }
 
         // Theme toggle — right-aligned
@@ -307,14 +300,14 @@ auto __stdcall ViewerApp::HandleMsgSetup(HWND hwnd, UINT uMsg, WPARAM wParam,
 {
     if (uMsg == WM_NCCREATE)
     {
-        // Retrieve the lpParam we passed in when creating the hWnd
+        // Retrieve the lpParam we passed in when creating the hwnd
         const CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
         auto pWindow = static_cast<ViewerApp*>(pCreate->lpCreateParams);
 
         // Set the USERDATA to point to this window
         SetWindowLongPtr(hwnd, GWLP_USERDATA,
                          reinterpret_cast<LONG_PTR>(pWindow));
-        // Now set the WNDPROC to point to handleMsgThunk
+        // Now set the WNDPROC to point to MsgThunk
         SetWindowLongPtr(hwnd, GWLP_WNDPROC,
                          reinterpret_cast<LONG_PTR>(&ViewerApp::MsgThunk));
 
@@ -327,11 +320,10 @@ auto __stdcall ViewerApp::HandleMsgSetup(HWND hwnd, UINT uMsg, WPARAM wParam,
 auto __stdcall ViewerApp::MsgThunk(HWND hwnd, UINT uMsg, WPARAM wParam,
                                    LPARAM lParam) noexcept -> LRESULT
 {
-    // Get a pointer to the window associated with the given h_wnd
+    // Get a pointer to the window associated with the given hwnd
     const auto pWindow =
         reinterpret_cast<ViewerApp*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-
-    // Forward on the message to the Window instance
+    // Forward on the message to the ViewerApp instance
     return pWindow->HandleMsg(hwnd, uMsg, wParam, lParam);
 }
 
