@@ -1,11 +1,15 @@
 #include "stdafx.h"
 
+#include "IconsFontAwesome6.h"
+#include "common/capture_types.h"
 #include "common/pipe_protocol.h"
 #include "imgui.h"
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_win32.h"
+#include "imgui_internal.h" // DockBuilder* API
 #include "viewer/d3d12_renderer.h"
 #include "viewer/pipe_server.h"
+#include "viewer/style.h"
 #include "viewer/viewer_app.h"
 
 // Forward-declared in imgui_impl_win32.h behind a comment block
@@ -154,13 +158,24 @@ auto ViewerApp::InitImGui(float mainScale) -> bool
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     // Load Roboto at the DPI-scaled pixel size with oversampling for sharpness
     io.Fonts->AddFontFromFileTTF("resources/fonts/Roboto-Regular.ttf",
                                  16.0f * mainScale);
 
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
+    // Merge Font Awesome Solid icons on top of Roboto
+    ImFontConfig faCfg;
+    faCfg.MergeMode = true;
+    faCfg.PixelSnapH = true;
+    faCfg.GlyphMinAdvanceX = 16.0f * mainScale; // keep icons monospaced
+    static const ImWchar faRanges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
+    io.Fonts->AddFontFromFileTTF("resources/fonts/fa-solid-900.ttf",
+                                 16.0f * mainScale, &faCfg, faRanges);
+
+    // Apply colour scheme before ScaleAllSizes so rounding values
+    // are scaled correctly
+    ApplyTheme(m_theme);
 
     // Setup scaling
     ImGuiStyle& style = ImGui::GetStyle();
@@ -214,11 +229,12 @@ auto ViewerApp::RenderFrame() -> void
     // Toolbar
     if (ImGui::BeginMainMenuBar())
     {
-        if (ImGui::Button("Launch App..."))
+        if (ImGui::Button(ICON_FA_FOLDER_OPEN " Launch App"))
         {
             // m_processLauncher.ShowDialog();
         }
-        if (ImGui::Button("Capture ▶"))
+
+        if (ImGui::Button(ICON_FA_PLAY " Capture"))
         {
             // Connect pipe
             if (m_pipeConnected)
@@ -227,15 +243,57 @@ auto ViewerApp::RenderFrame() -> void
                     PipeProtocol::MessageType::StartCapture, nullptr, 0);
             }
         }
+
+        // Theme toggle — right-aligned
+        const char* themeLabel =
+            m_theme == Theme::RosePineDawn ? ICON_FA_SUN : ICON_FA_MOON;
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() +
+                             ImGui::GetContentRegionAvail().x -
+                             ImGui::CalcTextSize(themeLabel).x -
+                             ImGui::GetStyle().FramePadding.x * 2.0f);
+        if (ImGui::Button(themeLabel))
+        {
+            m_theme = (m_theme == Theme::RosePineDawn) ? Theme::RosePine
+                                                       : Theme::RosePineDawn;
+            ApplyTheme(m_theme);
+        }
+
         ImGui::EndMainMenuBar();
     }
 
-    // Panels
-    // m_frameTree.Draw(m_captureClient.GetSnapshot());
-    // m_texturePreview.Draw(m_frameTree.GetSelectedEvent(),
-    //                       m_captureClient.GetSnapshot());
-    // m_timeline.Draw(m_captureClient.GetSnapshot(),
-    //                 m_frameTree.GetSelectedEvent());
+    // Full-screen dock space below the menu bar
+    ImGuiID dockspaceId =
+        ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
+
+    // Build default layout once and imgui.ini takes over after first run.
+    // DockSpaceOverViewport always creates the node, so we check IsLeafNode()
+    // to detect a fresh unsplit space rather than checking for nullptr.
+    ImGuiDockNode* dockNode = ImGui::DockBuilderGetNode(dockspaceId);
+    if (dockNode == nullptr || dockNode->IsLeafNode())
+    {
+        ImGui::DockBuilderRemoveNode(dockspaceId);
+        ImGui::DockBuilderAddNode(dockspaceId, ImGuiDockNodeFlags_DockSpace);
+        ImGui::DockBuilderSetNodeSize(dockspaceId,
+                                      ImGui::GetMainViewport()->WorkSize);
+
+        ImGuiID dockMain = dockspaceId;
+        ImGuiID dockBottom = ImGui::DockBuilderSplitNode(
+            dockMain, ImGuiDir_Down, 0.30f, nullptr, &dockMain);
+        ImGuiID dockLeft = ImGui::DockBuilderSplitNode(
+            dockMain, ImGuiDir_Left, 0.30f, nullptr, &dockMain);
+
+        ImGui::DockBuilderDockWindow("Timeline", dockBottom);
+        ImGui::DockBuilderDockWindow("Draw Calls", dockLeft);
+        ImGui::DockBuilderDockWindow("Details", dockMain);
+
+        ImGui::DockBuilderFinish(dockspaceId);
+    }
+
+    // Draw panels
+    m_frameTree.Draw(&m_snapshot);
+    const CapturedEvent* selected = m_frameTree.GetSelectedEvent();
+    m_gpuTimeline.Draw(&m_snapshot, selected);
+    m_details.Draw(selected, &m_snapshot);
 
     ImGui::Render();
     ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(),

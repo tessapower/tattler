@@ -17,7 +17,7 @@ struct Palette
 };
 
 // Rose Pine Dawn (light) — https://rosepinetheme.com/palette/ingredients/
-inline constexpr Palette kRosePineDawn = {
+inline constexpr Palette ROSE_PINE_DAWN = {
     {0.980f, 0.957f, 0.929f, 1.000f}, // base    #faf4ed
     {1.000f, 0.980f, 0.953f, 1.000f}, // surface #fffaf3
     {0.949f, 0.914f, 0.882f, 1.000f}, // overlay #f2e9e1
@@ -36,7 +36,7 @@ inline constexpr Palette kRosePineDawn = {
 };
 
 // Rose Pine (dark) — https://rosepinetheme.com/palette/ingredients/
-inline constexpr Palette kRosePine = {
+inline constexpr Palette ROSE_PINE = {
     {0.098f, 0.090f, 0.141f, 1.000f}, // base    #191724
     {0.122f, 0.114f, 0.180f, 1.000f}, // surface #1f1d2e
     {0.149f, 0.137f, 0.227f, 1.000f}, // overlay #26233a

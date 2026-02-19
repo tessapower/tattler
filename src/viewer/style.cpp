@@ -11,7 +11,7 @@ static Theme s_currentTheme = Theme::RosePineDawn;
 
 auto GetCurrentPalette() -> const Palette&
 {
-    return s_currentTheme == Theme::RosePineDawn ? kRosePineDawn : kRosePine;
+    return s_currentTheme == Theme::RosePineDawn ? ROSE_PINE_DAWN : ROSE_PINE;
 }
 
 static void ApplyPalette(const Palette& p)
@@ -94,7 +94,7 @@ static void ApplyPalette(const Palette& p)
 auto ApplyTheme(Theme theme) -> void
 {
     s_currentTheme = theme;
-    ApplyPalette(theme == Theme::RosePineDawn ? kRosePineDawn : kRosePine);
+    ApplyPalette(theme == Theme::RosePineDawn ? ROSE_PINE_DAWN : ROSE_PINE);
 }
 
 } // namespace tattler

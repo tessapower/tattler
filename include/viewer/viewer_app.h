@@ -1,6 +1,11 @@
 #pragma once
 
+#include "common/capture_types.h"
+#include "viewer/frame_tree_panel.h"
+#include "viewer/gpu_timeline_bar.h"
 #include "viewer/pipe_server.h"
+#include "viewer/style.h"
+#include "viewer/texture_preview_panel.h"
 
 #include <thread>
 #include <atomic>
@@ -53,16 +58,24 @@ class ViewerApp
     auto HandleMsg(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) noexcept
         -> LRESULT;
 
-    // ImGui
-    auto InitImGui(float mainScale) -> bool;
-
-    // Renderer and related resources
+    //----------------------------------------------------------- RENDERER --//
     std::unique_ptr<class D3D12Renderer> m_renderer;
 
-    auto RenderFrame()
-        -> void; // one frame:: ImGui::NewFrame -> panels -> render -> present
+    auto RenderFrame() -> void;
 
-    // Panels (each panel is responsible for its own rendering)
+    //-------------------------------------------------------------- IMGUI --//
+    auto InitImGui(float mainScale) -> bool;
+
+    // Panels
+    FrameTreePanel m_frameTree;
+    GpuTimelineBar m_gpuTimeline;
+    TexturePreviewPanel m_details;
+
+    // Active colour theme toggled from the toolbar
+    Theme m_theme = Theme::RosePine;
+
+    // Capture data: replaced with real data once hook is connected
+    CaptureSnapshot m_snapshot;
 };
 
 } // namespace tattler
