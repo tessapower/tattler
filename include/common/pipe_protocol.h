@@ -16,8 +16,11 @@ enum class MessageType : uint32_t
     CaptureData,  // hook → viewer (payload: serialised events)
 };
 
+constexpr uint32_t PROTOCOL_VERSION = 1;
+
 struct MessageHeader
 {
+    uint32_t version = 1; // For future compatibility, currently always 1
     MessageType type;
     uint32_t payloadSize;
 };
@@ -79,7 +82,7 @@ class Pipe
     auto SendMessage(PipeProtocol::MessageType type, const void* data,
                      uint32_t size) -> bool
     {
-        PipeProtocol::MessageHeader header{type, size};
+        PipeProtocol::MessageHeader header{PROTOCOL_VERSION, type, size};
         if (!WriteExact(m_handle, &header, sizeof(header)))
             return false;
 
