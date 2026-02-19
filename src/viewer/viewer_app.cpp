@@ -10,6 +10,7 @@
 #include "viewer/d3d12_renderer.h"
 #include "viewer/pipe_server.h"
 #include "viewer/style.h"
+#include "viewer/srv_descriptor_allocator.h"
 #include "viewer/viewer_app.h"
 
 // Forward-declared in imgui_impl_win32.h behind a comment block
