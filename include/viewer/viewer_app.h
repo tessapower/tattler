@@ -1,5 +1,10 @@
 #pragma once
 
+#include "viewer/pipe_server.h"
+
+#include <thread>
+#include <atomic>
+
 namespace tattler
 {
 
@@ -34,6 +39,9 @@ class ViewerApp
     UINT m_width = 960;
     UINT m_height = 540;
     static constexpr LPCTSTR m_className = TEXT("ViewerAppWindowClass");
+    PipeServer m_pipeServer;
+    std::thread m_pipeThread;
+    std::atomic<bool> m_pipeConnected = false;
 
     auto InitWindow(float mainScale, LPCTSTR title) -> void;
     auto CleanupWindow() -> void;
