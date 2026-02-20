@@ -79,8 +79,15 @@ class Pipe
 
     virtual auto Connect() -> bool = 0;
 
-    auto SendMessage(PipeProtocol::MessageType type, const void* data,
-                     uint32_t size) -> bool
+    /// <summary>
+    /// Write header + payload (if any) to the pipe
+    /// </summary>
+    /// <param name="type">Message type</param>
+    /// <param name="data">Pointer to the payload data</param>
+    /// <param name="size">Size of the payload data</param>
+    /// <returns>True if the message was successfully sent, false otherwise</returns>
+    auto Send(PipeProtocol::MessageType type, const void* data,
+              uint32_t size) const -> bool
     {
         PipeProtocol::MessageHeader header{PROTOCOL_VERSION, type, size};
         if (!WriteExact(m_handle, &header, sizeof(header)))
@@ -92,9 +99,15 @@ class Pipe
         return true;
     }
 
-    // Read header, allocate, read payload
-    auto ReceiveMessage(PipeProtocol::MessageType& outType,
-                        std::vector<uint8_t>* outPayload) -> bool
+    /// <summary>
+    /// Read header, allocate, read payload
+    /// </summary>
+    /// <param name="outType">Output message type</param>
+    /// <param name="outPayload">Output payload buffer, only allocated if not
+    /// null</param> <returns>True if the message was successfully received,
+    /// false otherwise</returns>
+    auto Receive(PipeProtocol::MessageType& outType,
+                 std::vector<uint8_t>* outPayload) const -> bool
     {
         MessageHeader header{};
         if (!ReadExact(m_handle, &header, sizeof(header)))
@@ -108,7 +121,8 @@ class Pipe
             {
                 // Caller doesn't care about the payload, just skip it
                 std::vector<uint8_t> tempBuffer(header.payloadSize);
-                return ReadExact(m_handle, tempBuffer.data(), header.payloadSize);
+                return ReadExact(m_handle, tempBuffer.data(),
+                                 header.payloadSize);
             }
             // Otherwise, allocate the output buffer and read into it
             outPayload->resize(header.payloadSize);
