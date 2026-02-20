@@ -6,7 +6,7 @@
 #include <cstring>
 #include <vector>
 
-namespace tattler
+namespace Tattler
 {
 
 template <typename T>
@@ -34,4 +34,4 @@ auto Serialize(const CaptureSnapshot& snapshot, std::vector<uint8_t>* outBuffer)
 /// <summary> Reconstruct a CaptureSnapshot from a flat byte buffer received over the pipe. </summary>
 auto Deserialize(const std::vector<uint8_t>& buffer, CaptureSnapshot* outSnapshot) -> bool;
 
-} // namespace tattler
+} // namespace Tattler

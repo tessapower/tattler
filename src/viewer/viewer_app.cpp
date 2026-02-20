@@ -14,7 +14,7 @@
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM,
                                                              LPARAM);
 
-namespace tattler
+namespace Tattler
 {
 ViewerApp::ViewerApp()
 {
@@ -373,4 +373,4 @@ auto ViewerApp::Shutdown() -> void
     CleanupWindow();
 }
 
-} // namespace tattler
+} // namespace Tattler

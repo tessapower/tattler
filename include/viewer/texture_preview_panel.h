@@ -2,7 +2,7 @@
 
 #include "common/capture_types.h"
 
-namespace tattler
+namespace Tattler
 {
 
 /// <summary>
@@ -18,4 +18,4 @@ class TexturePreviewPanel
     void Draw(const CapturedEvent* selectedEvent, const CaptureSnapshot* snapshot);
 };
 
-} // namespace tattler
+} // namespace Tattler

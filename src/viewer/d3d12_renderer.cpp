@@ -3,7 +3,7 @@
 #include "viewer/d3d12_renderer.h"
 #include "viewer/d3dx12.h"
 
-namespace tattler
+namespace Tattler
 {
 auto D3D12Renderer::Init(HWND hwnd, UINT width, UINT height) -> bool
 {
@@ -267,4 +267,4 @@ auto D3D12Renderer::Shutdown() -> void
     // ComPtr destructors release all D3D12/DXGI objects automatically
 }
 
-} // namespace tattler
+} // namespace Tattler

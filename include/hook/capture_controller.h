@@ -5,7 +5,7 @@
 
 #include <atomic>
 
-namespace tattler
+namespace Tattler
 {
 /// <summary>
 /// Manages the capture process
@@ -42,4 +42,4 @@ class CaptureController
     // CaptureBuffer m_buffer;
 };
 
-} // namespace tattler
+} // namespace Tattler

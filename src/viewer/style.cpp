@@ -4,7 +4,7 @@
 
 #include "imgui.h"
 
-namespace tattler
+namespace Tattler
 {
 
 static Theme s_currentTheme = Theme::RosePineDawn;
@@ -97,4 +97,4 @@ auto ApplyTheme(Theme theme) -> void
     ApplyPalette(theme == Theme::RosePineDawn ? ROSE_PINE_DAWN : ROSE_PINE);
 }
 
-} // namespace tattler
+} // namespace Tattler

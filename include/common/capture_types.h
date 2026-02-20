@@ -7,7 +7,7 @@
 #include <variant>
 #include <vector>
 
-namespace tattler
+namespace Tattler
 {
 // Using a simple uint64_t for resource IDs, COM pointers are 8 bytes so we can
 // store them directly. The viewer app will never deference these directly, it
@@ -114,4 +114,4 @@ struct CaptureSnapshot
     std::vector<CapturedFrame> frames;
     std::vector<StagedTexture> renderTargetSnapshots; // readback copies
 };
-} // namespace tattler
+} // namespace Tattler

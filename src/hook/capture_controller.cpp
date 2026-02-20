@@ -3,7 +3,7 @@
 #include <common/capture_types.h>
 #include "hook/capture_controller.h"
 
-namespace tattler
+namespace Tattler
 {
 auto CaptureController::Run() -> void
 {
@@ -51,4 +51,4 @@ auto CaptureController::FlushFrame() -> void {
         // m_pipeClient.Send(PipeProtocol::MessageType::CaptureData, m_buffer, sizeof(m_buffer));
 }
 
-} // namespace tattler
+} // namespace Tattler

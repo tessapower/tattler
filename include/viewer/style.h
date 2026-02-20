@@ -2,7 +2,7 @@
 
 #include "imgui.h"
 
-namespace tattler
+namespace Tattler
 {
 
 enum class Theme { RosePineDawn, RosePine };
@@ -60,4 +60,4 @@ auto GetCurrentPalette() -> const Palette&;
 /// <summary> Apply a Rose Pine theme and rounded style to the active ImGui context. </summary>
 auto ApplyTheme(Theme theme) -> void;
 
-} // namespace tattler
+} // namespace Tattler

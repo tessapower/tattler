@@ -6,7 +6,7 @@
 #include <mutex>
 #include <utility>
 
-namespace tattler
+namespace Tattler
 {
 
 auto CaptureBuffer::AddEvent(CapturedEvent event) -> void
@@ -46,4 +46,4 @@ auto CaptureBuffer::Size() const -> size_t
     return m_events.size();
 }
 
-} // namespace tattler
+} // namespace Tattler

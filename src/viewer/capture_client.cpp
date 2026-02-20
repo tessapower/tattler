@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-namespace tattler
+namespace Tattler
 {
 CaptureClient::CaptureClient()
 {
@@ -93,4 +93,4 @@ auto CaptureClient::SendStopCapture() -> void
                                  nullptr, 0);
 }
 
-} // namespace tattler
+} // namespace Tattler

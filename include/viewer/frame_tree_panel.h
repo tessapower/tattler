@@ -2,7 +2,7 @@
 
 #include "common/capture_types.h"
 
-namespace tattler
+namespace Tattler
 {
 
 /// <summary>
@@ -28,4 +28,4 @@ class FrameTreePanel
     const CaptureSnapshot* m_lastSnapshot = nullptr;
 };
 
-} // namespace tattler
+} // namespace Tattler

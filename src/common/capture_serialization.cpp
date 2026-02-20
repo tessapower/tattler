@@ -4,7 +4,7 @@
 
 #include <cstring>
 
-namespace tattler
+namespace Tattler
 {
 
 auto Serialize(const CaptureSnapshot& snapshot, std::vector<uint8_t>* outBuffer) -> bool
@@ -193,4 +193,4 @@ auto Deserialize(const std::vector<uint8_t>& buffer, CaptureSnapshot* outSnapsho
     return true;
 }
 
-} // namespace tattler
+} // namespace Tattler

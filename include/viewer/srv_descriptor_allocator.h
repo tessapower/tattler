@@ -5,7 +5,7 @@
 #include <cassert>
 #include <vector>
 
-namespace tattler
+namespace Tattler
 {
 
 /// <summary>
@@ -80,4 +80,4 @@ struct SrvDescriptorAllocator
     }
 };
 
-} // namespace tattler
+} // namespace Tattler

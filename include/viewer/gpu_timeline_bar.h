@@ -2,7 +2,7 @@
 
 #include "common/capture_types.h"
 
-namespace tattler
+namespace Tattler
 {
 
 /// <summary>
@@ -19,4 +19,4 @@ class GpuTimelineBar
     void Draw(const CaptureSnapshot* snapshot, const CapturedEvent* selectedEvent);
 };
 
-} // namespace tattler
+} // namespace Tattler

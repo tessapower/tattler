@@ -2,7 +2,7 @@
 
 #include "common/pipe_protocol.h"
 
-namespace tattler
+namespace Tattler
 {
 
 class PipeClient : public PipeProtocol::Pipe
@@ -50,4 +50,4 @@ class PipeClient : public PipeProtocol::Pipe
         }
     }
 };
-} // namespace tattler
+} // namespace Tattler

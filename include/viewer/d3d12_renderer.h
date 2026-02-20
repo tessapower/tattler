@@ -7,7 +7,7 @@
 
 #include <wrl.h>
 
-namespace tattler
+namespace Tattler
 {
 
 class D3D12Renderer
@@ -113,4 +113,4 @@ class D3D12Renderer
     bool m_swapChainAllowTearing = false;
 };
 
-} // namespace tattler
+} // namespace Tattler

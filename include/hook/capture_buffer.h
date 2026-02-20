@@ -5,7 +5,7 @@
 #include <mutex>
 #include <vector>
 
-namespace tattler
+namespace Tattler
 {
 
 /// <summary>
@@ -49,4 +49,4 @@ class CaptureBuffer
     std::vector<CapturedEvent> m_events;
 };
 
-} // namespace tattler
+} // namespace Tattler

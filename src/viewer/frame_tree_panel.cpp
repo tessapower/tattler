@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-namespace tattler
+namespace Tattler
 {
 
 static const char* EventTypeName(EventType type)
@@ -142,4 +142,4 @@ auto FrameTreePanel::GetSelectedEvent() const -> const CapturedEvent*
     return &frame.events[m_selectedEvent];
 }
 
-} // namespace tattler
+} // namespace Tattler

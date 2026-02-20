@@ -4,7 +4,7 @@
 
 #include "imgui.h"
 
-namespace tattler
+namespace Tattler
 {
 
 void TexturePreviewPanel::Draw(const CapturedEvent* selectedEvent,
@@ -105,4 +105,4 @@ void TexturePreviewPanel::Draw(const CapturedEvent* selectedEvent,
     ImGui::End();
 }
 
-} // namespace tattler
+} // namespace Tattler

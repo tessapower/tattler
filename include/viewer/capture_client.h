@@ -7,7 +7,7 @@
 #include <mutex>
 #include <thread>
 
-namespace tattler
+namespace Tattler
 {
 
 /// <summary>
@@ -55,4 +55,4 @@ class CaptureClient
     CaptureSnapshot m_snapshot;
 };
 
-} // namespace tattler
+} // namespace Tattler

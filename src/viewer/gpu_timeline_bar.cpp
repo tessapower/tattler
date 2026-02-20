@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cstdio>
 
-namespace tattler
+namespace Tattler
 {
 
 static ImVec4 EventColor(EventType type)
@@ -128,4 +128,4 @@ void GpuTimelineBar::Draw(const CaptureSnapshot* snapshot, const CapturedEvent* 
     ImGui::End();
 }
 
-} // namespace tattler
+} // namespace Tattler

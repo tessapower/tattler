@@ -9,7 +9,7 @@
 
 #include <memory>
 
-namespace tattler
+namespace Tattler
 {
 class ViewerApp
 {
@@ -76,4 +76,4 @@ class ViewerApp
     Theme m_theme = Theme::RosePine;
 };
 
-} // namespace tattler
+} // namespace Tattler
