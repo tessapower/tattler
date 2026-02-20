@@ -1,16 +1,13 @@
 #include "stdafx.h"
 
 #include "IconsFontAwesome6.h"
-#include "common/capture_types.h"
-#include "common/pipe_protocol.h"
 #include "imgui.h"
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_win32.h"
 #include "imgui_internal.h" // DockBuilder* API
 #include "viewer/d3d12_renderer.h"
-#include "viewer/pipe_server.h"
-#include "viewer/style.h"
 #include "viewer/srv_descriptor_allocator.h"
+#include "viewer/style.h"
 #include "viewer/viewer_app.h"
 
 // Forward-declared in imgui_impl_win32.h behind a comment block
@@ -64,28 +61,8 @@ auto ViewerApp::Init(HINSTANCE hInstance, LPCTSTR title) -> bool
         return false;
     }
 
-    if (!m_pipeServer.Create())
-        throw std::runtime_error("Failed to create pipe server");
-
-    // Connect to the pipe immediately — the hook will wait until a connection
-    // is made before sending messages, so this ensures we don't miss any
-    // messages sent early in the capture process (e.g. StartCapture)
-    // We do this on a separate thread so we don't block the main thread if the
-    // hook isn't injected yet and isn't connecting to the pipe.
-    m_pipeThread = std::thread(
-        [this]()
-        {
-            OutputDebugString(TEXT("Waiting for pipe connection...\n"));
-            if (m_pipeServer.Connect())
-            {
-                OutputDebugString(TEXT("Pipe client connected!\n"));
-                m_pipeConnected = true;
-            }
-            else
-            {
-                OutputDebugString(TEXT("Failed to connect to pipe client\n"));
-            }
-        });
+    // Start capture client
+    m_captureClient.Start();
 
     return true;
 }
@@ -234,9 +211,8 @@ auto ViewerApp::RenderFrame() -> void
 
         if (ImGui::Button(ICON_FA_PLAY " Capture"))
         {
-            if (m_pipeConnected)
-                m_pipeServer.SendMessage(
-                    PipeProtocol::MessageType::StartCapture, nullptr, 0);
+            if (m_captureClient.IsConnected())
+                m_captureClient.SendStartCapture();
         }
 
         // Theme toggle — right-aligned
@@ -285,10 +261,13 @@ auto ViewerApp::RenderFrame() -> void
     }
 
     // Draw panels
-    m_frameTree.Draw(&m_snapshot);
-    const CapturedEvent* selected = m_frameTree.GetSelectedEvent();
-    m_gpuTimeline.Draw(&m_snapshot, selected);
-    m_details.Draw(selected, &m_snapshot);
+    {
+        auto snapshot = m_captureClient.GetSnapshot();
+        m_frameTree.Draw(&snapshot);
+        const CapturedEvent* selected = m_frameTree.GetSelectedEvent();
+        m_gpuTimeline.Draw(&snapshot, selected);
+        m_details.Draw(selected, &snapshot);
+    }
 
     ImGui::Render();
     ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(),
@@ -385,16 +364,6 @@ auto ViewerApp::Run() -> int
 auto ViewerApp::Shutdown() -> void
 {
     m_renderer->WaitForGpu();
-
-    // Shut down the pipe server thread before releasing D3D resources, in case
-    // the thread is in the middle of sending a message and using the renderer's
-    // SRV heap (e.g. sending CaptureData with texture SRVs)
-    if (m_pipeThread.joinable())
-        m_pipeThread.join();
-
-    // Disconnect and destroy the pipe server
-    m_pipeServer.Disconnect();
-    m_pipeServer.Destroy();
 
     ImGui_ImplDX12_Shutdown();
     ImGui_ImplWin32_Shutdown();

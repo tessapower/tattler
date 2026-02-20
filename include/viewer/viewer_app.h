@@ -1,14 +1,13 @@
 #pragma once
 
 #include "common/capture_types.h"
+#include "viewer/capture_client.h"
 #include "viewer/frame_tree_panel.h"
 #include "viewer/gpu_timeline_bar.h"
-#include "viewer/pipe_server.h"
 #include "viewer/style.h"
 #include "viewer/texture_preview_panel.h"
 
-#include <atomic>
-#include <thread>
+#include <memory>
 
 namespace tattler
 {
@@ -43,9 +42,6 @@ class ViewerApp
     UINT m_width = 960;
     UINT m_height = 540;
     static constexpr LPCTSTR m_className = TEXT("ViewerAppWindowClass");
-    PipeServer m_pipeServer;
-    std::thread m_pipeThread;
-    std::atomic<bool> m_pipeConnected = false;
 
     auto InitWindow(float mainScale, LPCTSTR title) -> void;
 
@@ -65,6 +61,9 @@ class ViewerApp
 
     auto RenderFrame() -> void;
 
+    //----------------------------------------------------- CAPTURE CLIENT --//
+    CaptureClient m_captureClient;
+
     //-------------------------------------------------------------- IMGUI --//
     auto InitImGui(float mainScale) -> bool;
 
@@ -75,9 +74,6 @@ class ViewerApp
 
     // Active colour theme toggled from the toolbar
     Theme m_theme = Theme::RosePine;
-
-    // Capture data: replaced with real data once hook is connected
-    CaptureSnapshot m_snapshot;
 };
 
 } // namespace tattler
