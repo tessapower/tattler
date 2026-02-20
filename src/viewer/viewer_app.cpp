@@ -228,7 +228,8 @@ auto ViewerApp::RenderFrame() -> void
     {
         if (ImGui::Button(ICON_FA_FOLDER_OPEN " Launch App"))
         {
-            // m_processLauncher.ShowDialog();
+            // TODO: implement a file picker dialog to select
+            // the target app, maybe support drag-and-drop?
         }
 
         if (ImGui::Button(ICON_FA_PLAY " Capture"))

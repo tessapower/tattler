@@ -12,7 +12,6 @@
 
 namespace tattler
 {
-
 class ViewerApp
 {
   public:
