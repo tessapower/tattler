@@ -22,10 +22,8 @@ auto CaptureBuffer::Flush() -> std::vector<CapturedEvent>
     // Lock mutex
     std::lock_guard lock(m_mutex);
 
-    // Create local copy of events
+    // Create local copy of events, clear out buffer
     std::vector<CapturedEvent> events = std::move(m_events);
-    // Clear buffer so it's empty for the next frame
-    m_events.clear();
 
     // Return local copy
     return events;

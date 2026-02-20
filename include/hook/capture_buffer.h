@@ -22,22 +22,20 @@ class CaptureBuffer
 {
   public:
     /// <summary>
-    /// Appends a captured event to the buffer.
-    /// Safe to call from any thread.
+    /// Appends a captured event to the buffer. Safe to call from any thread!
     /// </summary>
     auto AddEvent(CapturedEvent event) -> void;
 
     /// <summary>
     /// Moves all accumulated events out of the buffer and returns them.
-    /// The buffer is empty after this call.
-    /// Safe to call from any thread.
+    /// Safe to call from any thread!
     /// </summary>
     auto Flush() -> std::vector<CapturedEvent>;
 
     /// <summary>
-    /// Discards all accumulated events without returning them.
-    /// Call at the start of each new frame to clear stale data.
-    /// Safe to call from any thread.
+    /// Discards all accumulated events without returning them. Call at the
+    /// start of each new frame to clear stale data. Safe to call from any
+    /// thread!
     /// </summary>
     auto Reset() -> void;
 
