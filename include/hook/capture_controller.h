@@ -49,6 +49,10 @@ class CaptureController
     std::atomic<bool> m_pipeConnected = false;
     std::atomic<bool> m_isCapturing = false;
     CaptureBuffer m_buffer;
+    CaptureSnapshot m_snapshot;
+    uint32_t m_frameIndex = 0;
+    uint64_t m_captureStartTimeUs = 0;
+    uint64_t m_lastFrameTimeUs = 0;
 };
 
 } // namespace Tattler
