@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/capture_types.h"
+#include "hook/capture_buffer.h"
 #include "hook/pipe_client.h"
 
 #include <atomic>
@@ -47,7 +48,7 @@ class CaptureController
     PipeClient m_pipeClient;
     std::atomic<bool> m_pipeConnected = false;
     std::atomic<bool> m_isCapturing = false;
-    // CaptureBuffer m_buffer;
+    CaptureBuffer m_buffer;
 };
 
 } // namespace Tattler
