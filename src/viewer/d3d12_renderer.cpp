@@ -185,8 +185,8 @@ auto D3D12Renderer::BeginFrame(HWND hwnd) -> bool
 
     // Clear the render target
     const float clearColor[] = {0.1f, 0.1f, 0.1f, 1.0f};
-    m_commandList->ClearRenderTargetView(m_rtvDescriptors[idx], clearColor,
-                                         0, nullptr);
+    m_commandList->ClearRenderTargetView(m_rtvDescriptors[idx], clearColor, 0,
+                                         nullptr);
 
     // Set the render target and SRV heap
     m_commandList->OMSetRenderTargets(1, &m_rtvDescriptors[idx], FALSE,
@@ -217,11 +217,13 @@ auto D3D12Renderer::EndFrame() -> void
 
     // Present (vsync on, or tearing if supported)
     UINT syncInterval = m_swapChainAllowTearing ? 0 : 1;
-    UINT presentFlags = m_swapChainAllowTearing ? DXGI_PRESENT_ALLOW_TEARING : 0;
+    UINT presentFlags =
+        m_swapChainAllowTearing ? DXGI_PRESENT_ALLOW_TEARING : 0;
     HRESULT hr = m_swapChain->Present(syncInterval, presentFlags);
     m_swapChainOccluded = (hr == DXGI_STATUS_OCCLUDED);
 
-    // Signal the fence *after* execute so the value represents this frame's work
+    // Signal the fence *after* execute so the value represents this frame's
+    // work
     UINT64 fenceValue = m_fenceValues[idx] + 1;
     m_commandQueue->Signal(m_fence.Get(), fenceValue);
 

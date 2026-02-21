@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
-#include "imgui.h"
 #include "common/capture_types.h"
+#include "imgui.h"
 #include "viewer/frame_tree_panel.h"
 
 #include <cstdint>

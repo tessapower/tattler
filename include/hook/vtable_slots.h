@@ -21,7 +21,7 @@ namespace VTableSlots
 namespace Device
 {
 inline constexpr int CreateCommandQueue = 8;
-inline constexpr int CreateCommandList  = 12;
+inline constexpr int CreateCommandList = 12;
 } // namespace Device
 
 /// DXGIFactory2 vtable slots.
@@ -46,12 +46,12 @@ inline constexpr int CreateSwapChainForHwnd = 15;
 ///   ID3D12GraphicsCommandList (9+)
 namespace CmdList
 {
-inline constexpr int Close                 = 9;
-inline constexpr int DrawInstanced         = 12;
-inline constexpr int DrawIndexedInstanced  = 13;
-inline constexpr int Dispatch              = 14;
-inline constexpr int CopyResource          = 17;
-inline constexpr int ResourceBarrier       = 26;
+inline constexpr int Close = 9;
+inline constexpr int DrawInstanced = 12;
+inline constexpr int DrawIndexedInstanced = 13;
+inline constexpr int Dispatch = 14;
+inline constexpr int CopyResource = 17;
+inline constexpr int ResourceBarrier = 26;
 inline constexpr int ClearDepthStencilView = 47;
 inline constexpr int ClearRenderTargetView = 48;
 } // namespace CmdList

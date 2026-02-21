@@ -9,7 +9,7 @@
 namespace Tattler
 {
 /// <summary>
-/// Manages the capture process
+/// Manages the capture process.
 /// </summary>
 class CaptureController
 {

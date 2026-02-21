@@ -82,15 +82,13 @@ auto CaptureClient::Stop() -> void
 auto CaptureClient::SendStartCapture() -> void
 {
     if (m_pipeConnected)
-        m_pipeServer.Send(PipeProtocol::MessageType::StartCapture,
-                                 nullptr, 0);
+        m_pipeServer.Send(PipeProtocol::MessageType::StartCapture, nullptr, 0);
 }
 
 auto CaptureClient::SendStopCapture() -> void
 {
     if (m_pipeConnected)
-        m_pipeServer.Send(PipeProtocol::MessageType::StopCapture,
-                                 nullptr, 0);
+        m_pipeServer.Send(PipeProtocol::MessageType::StopCapture, nullptr, 0);
 }
 
 } // namespace Tattler

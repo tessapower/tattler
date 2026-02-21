@@ -6,6 +6,7 @@
 #include "hook/vtable_slots.h"
 
 #include <dxgi.h>
+
 #include <unordered_set>
 
 namespace Tattler
@@ -17,9 +18,9 @@ using PFN_Present = HRESULT(WINAPI*)(IDXGISwapChain*, UINT, UINT);
 
 static PFN_Present s_origPresent = nullptr;
 
-static ID3D12Fence* s_fence      = nullptr;
-static HANDLE       s_fenceEvent = nullptr;
-static uint64_t     s_fenceValue = 0;
+static ID3D12Fence* s_fence = nullptr;
+static HANDLE s_fenceEvent = nullptr;
+static uint64_t s_fenceValue = 0;
 
 //------------------------------------------------------------------- HOOK --//
 
@@ -58,7 +59,7 @@ static HRESULT WINAPI HookedPresent(IDXGISwapChain* pThis, UINT SyncInterval,
         }
 
         // Read resolved timestamps and GPU tick frequency
-        auto results      = g_timestampManager.ReadResults();
+        auto results = g_timestampManager.ReadResults();
         uint64_t frequency = g_timestampManager.GetFrequency(g_commandQueue);
 
         // Patch slot indices → real ticks and ship to viewer

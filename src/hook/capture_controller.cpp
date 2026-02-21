@@ -1,7 +1,8 @@
 #include "stdafx.h"
 
-#include <common/capture_types.h>
 #include "hook/capture_controller.h"
+
+#include <common/capture_types.h>
 
 namespace Tattler
 {
@@ -42,13 +43,16 @@ auto CaptureController::Run() -> void
     m_pipeConnected = false;
 }
 
-auto CaptureController::SubmitEvent(CapturedEvent const& event) -> void {
+auto CaptureController::SubmitEvent(CapturedEvent const& event) -> void
+{
     // TODO: Submit to buffer, need to implement capture buffer
 }
 
-auto CaptureController::FlushFrame() -> void {
-    //if (m_pipeConnected)
-        // m_pipeClient.Send(PipeProtocol::MessageType::CaptureData, m_buffer, sizeof(m_buffer));
+auto CaptureController::FlushFrame() -> void
+{
+    // if (m_pipeConnected)
+    //  m_pipeClient.Send(PipeProtocol::MessageType::CaptureData, m_buffer,
+    //  sizeof(m_buffer));
 }
 
 auto CaptureController::EndFrame(const std::vector<uint64_t>& timestampResults,
@@ -64,7 +68,8 @@ auto CaptureController::EndFrame(const std::vector<uint64_t>& timestampResults,
             event.timestampEnd = timestampResults[event.timestampEnd];
     }
 
-    // TODO: build CapturedFrame with frequency + events, serialize, send via pipe
+    // TODO: build CapturedFrame with frequency + events, serialize, send via
+    // pipe
 }
 
 } // namespace Tattler

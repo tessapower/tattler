@@ -3,12 +3,12 @@
 #include "hook/capture_controller.h"
 #include "hook/timestamp_manager.h"
 
-/// <summary>
+#include <d3d12.h>
+
 /// Global singletons shared across all hook files.
 ///
 /// Hook wrappers: include this header to access the capture controller and
 /// timestamp manager without needing to pass them around as parameters.
-/// </summary>
 namespace Tattler
 {
 

@@ -4,7 +4,8 @@
 
 #include <cstdlib>
 
-auto WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int) -> int
+auto WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
+                     _In_ int) -> int
 {
     Tattler::ViewerApp app;
     if (!app.Init(hInstance, TEXT("Tattler")))

@@ -1,6 +1,5 @@
 #pragma once
 
-
 /// <summary>
 /// Utilities for patching COM interface vtables at runtime
 /// </summary>
@@ -32,7 +31,8 @@ inline void** GetVTable(void* pObject)
 /// <typeparam name="T">Function pointer type of the slot</typeparam>
 /// <param name="vtable">Vtable array obtained from GetVTable()</param>
 /// <param name="slot">Zero-based slot index (see vtable_slots.h)</param>
-/// <param name="hookFn">Replacement function, which must match the original signature</param>
+/// <param name="hookFn">Replacement function, which must match the original
+/// signature</param>
 /// <returns>The original function pointer that was in the slot.</returns>
 template <typename T> T HookVTableEntry(void** vtable, int slot, void* hookFn)
 {
