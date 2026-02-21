@@ -6,7 +6,7 @@
 
 #include <gtest/gtest.h>
 
-using namespace tattler;
+using namespace Tattler;
 
 //-------------------------------------------------------------- TEST DATA --//
 

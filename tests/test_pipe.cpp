@@ -11,8 +11,8 @@
 class PipeTest : public ::testing::Test
 {
   protected:
-    tattler::PipeServer server;
-    tattler::PipeClient client;
+    Tattler::PipeServer server;
+    Tattler::PipeClient client;
 
     void SetUp() override
     {
