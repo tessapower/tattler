@@ -51,4 +51,20 @@ auto CaptureController::FlushFrame() -> void {
         // m_pipeClient.Send(PipeProtocol::MessageType::CaptureData, m_buffer, sizeof(m_buffer));
 }
 
+auto CaptureController::EndFrame(const std::vector<uint64_t>& timestampResults,
+                                 uint64_t frequency) -> void
+{
+    auto events = m_buffer.Flush();
+
+    for (auto& event : events)
+    {
+        if (event.timestampBegin < timestampResults.size())
+            event.timestampBegin = timestampResults[event.timestampBegin];
+        if (event.timestampEnd < timestampResults.size())
+            event.timestampEnd = timestampResults[event.timestampEnd];
+    }
+
+    // TODO: build CapturedFrame with frequency + events, serialize, send via pipe
+}
+
 } // namespace Tattler

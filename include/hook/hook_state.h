@@ -18,6 +18,11 @@ extern CaptureController g_captureController;
 
 /// Manages the D3D12 timestamp query heap for GPU event timing.
 /// Hook wrappers: call g_timestampManager.AllocatePair() and InsertTimestamp().
-//extern TimestampManager g_timestampManager;
+extern TimestampManager g_timestampManager;
+
+/// Command queue used for timestamp frequency queries. Set by
+/// ExecuteCommandLists hook, read by the Present hook via
+/// g_timestampManager.GetFrequency(g_commandQueue).
+extern ID3D12CommandQueue* g_commandQueue;
 
 } // namespace Tattler

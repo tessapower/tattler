@@ -46,6 +46,7 @@ inline constexpr int CreateSwapChainForHwnd = 15;
 ///   ID3D12GraphicsCommandList (9+)
 namespace CmdList
 {
+inline constexpr int Close                 = 9;
 inline constexpr int DrawInstanced         = 12;
 inline constexpr int DrawIndexedInstanced  = 13;
 inline constexpr int Dispatch              = 14;

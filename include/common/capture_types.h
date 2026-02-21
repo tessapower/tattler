@@ -53,7 +53,7 @@ struct DispatchParams
 
 struct CopyParams
 {
-    ResourceId src, dst;
+    ResourceId dst, src;
 };
 
 struct BarrierParams
