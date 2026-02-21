@@ -33,9 +33,17 @@ static HRESULT WINAPI HookedPresent(IDXGISwapChain* pThis, UINT SyncInterval,
         {
             ID3D12Device* device = nullptr;
             g_commandQueue->GetDevice(IID_PPV_ARGS(&device));
-            device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&s_fence));
+            device->CreateFence(0, D3D12_FENCE_FLAG_NONE,
+                                IID_PPV_ARGS(&s_fence));
             device->Release();
             s_fenceEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+            if (!s_fenceEvent)
+                s_fence = nullptr; // keep the two in sync; skip capture this frame
+        }
+
+        if (!s_fence)
+        {
+            return s_origPresent(pThis, SyncInterval, Flags);
         }
 
         // Signal the fence after all work submitted this frame
