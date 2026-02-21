@@ -22,18 +22,35 @@ class CaptureController
     /// </summary>
     auto Run() -> void;
 
+    /// <summary>
+    /// Returns true if the pipe connection to the viewer is active.
+    /// </summary>
     auto IsConnected() const -> bool
     {
         return m_pipeConnected;
     }
 
+    /// <summary>
+    /// Returns true if a capture is currently in progress.
+    /// Hook wrappers should check this before calling SubmitEvent.
+    /// </summary>
     auto IsCapturing() const -> bool
     {
         return m_isCapturing;
     }
 
+    /// <summary>
+    /// Submits a captured event to the event buffer. Does NOT check if we're
+    /// currently capturing, that should be done first with IsCapturing() to
+    /// avoid corrupting capture data with pre-capture events.
+    /// </summary>
     auto SubmitEvent(CapturedEvent const& event) -> void;
 
+    /// <summary>
+    /// Serializes the accumulated CaptureSnapshot and sends it to the viewer
+    /// over the pipe. Called when the viewer sends a StopCapture message.
+    /// Clears the snapshot after sending.
+    /// </summary>
     auto FlushFrame() -> void;
 
     /// <summary>
