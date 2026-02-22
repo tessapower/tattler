@@ -6,6 +6,7 @@
 #include "imgui_impl_win32.h"
 #include "imgui_internal.h" // DockBuilder* API
 #include "viewer/d3d12_renderer.h"
+#include "viewer/process_launcher.h"
 #include "viewer/srv_descriptor_allocator.h"
 #include "viewer/style.h"
 #include "viewer/viewer_app.h"
@@ -200,15 +201,37 @@ auto ViewerApp::RenderFrame() -> void
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
+    // Track pipe connect/disconnect
+    // when the hook disconnects, allow re-launch
+    const bool isConnected = m_captureClient.IsConnected();
+    if (m_wasConnected && !isConnected)
+        m_appLaunched = false;
+    m_wasConnected = isConnected;
+
     // Toolbar
     if (ImGui::BeginMainMenuBar())
     {
+        // Disable the launch button while a hooked process is already running
+        if (m_appLaunched)
+            ImGui::BeginDisabled();
         if (ImGui::Button(ICON_FA_FOLDER_OPEN " Launch App"))
         {
-            // TODO: implement a file picker dialog to select
-            // the target app, maybe support drag-and-drop?
+            if (ProcessLauncher::Launch(m_hwnd))
+                m_appLaunched = true;
         }
+        if (m_appLaunched)
+            ImGui::EndDisabled();
 
+        // Status indicator
+        ImGui::SameLine();
+        if (isConnected)
+            ImGui::TextColored({0.4f, 0.8f, 0.4f, 1.0f},
+                               ICON_FA_CIRCLE " Connected");
+        else if (m_appLaunched)
+            ImGui::TextColored({0.9f, 0.7f, 0.1f, 1.0f},
+                               ICON_FA_CIRCLE " Waiting for hook...");
+
+        // Capture button
         if (ImGui::Button(ICON_FA_PLAY " Capture"))
         {
             if (m_captureClient.IsConnected())

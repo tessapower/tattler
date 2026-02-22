@@ -63,6 +63,8 @@ class ViewerApp
 
     //----------------------------------------------------- CAPTURE CLIENT --//
     CaptureClient m_captureClient;
+    bool m_appLaunched = false;
+    bool m_wasConnected = false;
 
     //-------------------------------------------------------------- IMGUI --//
     auto InitImGui(float mainScale) -> bool;
