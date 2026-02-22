@@ -32,7 +32,17 @@ class PipeClient : public PipeProtocol::Pipe
                 return true;
 
             // Only reachable if CreateFile failed
-            if (GetLastError() != ERROR_PIPE_BUSY)
+            const DWORD err = GetLastError();
+
+            if (err == ERROR_FILE_NOT_FOUND)
+            {
+                // Pipe may be momentarily unavailable between
+                // DisconnectNamedPipe and the server's next ConnectNamedPipe
+                Sleep(10);
+                continue;
+            }
+
+            if (err != ERROR_PIPE_BUSY)
                 return false;
 
             if (!WaitNamedPipeW(PipeProtocol::PIPE_NAME, 5000))

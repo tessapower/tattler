@@ -27,45 +27,42 @@ CaptureClient::~CaptureClient()
 
 auto CaptureClient::Start() -> void
 {
-    // Connect to the pipe immediately, we do this on a separate thread so we
-    // don't block the main thread if the hook isn't injected yet and/or isn't
-    // connecting to the pipe.
+    m_stopping = false;
+
+    // Connect to the pipe on a background thread so we don't block rendering.
+    // After a client disconnects the loop resets the pipe and waits for the
+    // next one, so re-launching the target app always finds a listener.
     m_pipeThread = std::thread(
         [this]()
         {
-            if (!m_pipeServer.Connect())
-                return;
-
-            m_pipeConnected = true;
-
-            while (true)
+            while (!m_stopping)
             {
-                PipeProtocol::MessageType type;
-                std::vector<uint8_t> payload;
+                if (!m_pipeServer.Connect())
+                    break;
 
-                if (!m_pipeServer.Receive(type, &payload))
-                {
-                    m_pipeConnected = false;
-                    break; // pipe closed or error
-                }
+                m_pipeConnected = true;
 
-                switch (type)
+                while (!m_stopping)
                 {
-                case PipeProtocol::MessageType::CaptureData:
-                {
-                    // payload already contains the full serialized snapshot
-                    CaptureSnapshot snapshot;
-                    if (Deserialize(payload, &snapshot))
+                    PipeProtocol::MessageType type;
+                    std::vector<uint8_t> payload;
+
+                    if (!m_pipeServer.Receive(type, &payload))
+                        break; // pipe closed or error
+
+                    if (type == PipeProtocol::MessageType::CaptureData)
                     {
-                        std::lock_guard lock(m_snapshotMutex);
-                        m_snapshot = std::move(snapshot);
+                        CaptureSnapshot snapshot;
+                        if (Deserialize(payload, &snapshot))
+                        {
+                            std::lock_guard lock(m_snapshotMutex);
+                            m_snapshot = std::move(snapshot);
+                        }
                     }
-                    break;
                 }
-                default:
-                    // Unexpected message type, ignore
-                    break;
-                }
+
+                m_pipeConnected = false;
+                m_pipeServer.Disconnect(); // reset pipe handle for next client
             }
         });
 }

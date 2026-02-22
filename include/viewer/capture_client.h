@@ -51,6 +51,7 @@ class CaptureClient
     PipeServer m_pipeServer;
     std::thread m_pipeThread;
     std::atomic<bool> m_pipeConnected = false;
+    std::atomic<bool> m_stopping = false;
     std::mutex m_snapshotMutex;
     CaptureSnapshot m_snapshot;
 };
