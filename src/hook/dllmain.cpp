@@ -36,17 +36,24 @@ static DWORD WINAPI HookThreadProc(LPVOID)
 /// </summary>
 BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD reason, LPVOID)
 {
-    if (reason == DLL_PROCESS_ATTACH)
+    switch (reason)
     {
+    case DLL_PROCESS_ATTACH:
         // Suppress per-thread DLL_THREAD_ATTACH / DLL_THREAD_DETACH calls,
         // we don't need them and they add unnecessary overhead
         DisableThreadLibraryCalls(hInstance);
 
-        HANDLE handle = CreateThread(nullptr, 0, Tattler::HookThreadProc,
-                                     nullptr, 0, nullptr);
-        if (!handle) return FALSE;
+        {
+            HANDLE handle = CreateThread(nullptr, 0, Tattler::HookThreadProc,
+                                         nullptr, 0, nullptr);
+            if (!handle) return FALSE;
+            CloseHandle(handle);
+        }
+        break;
 
-        CloseHandle(handle);
+    case DLL_PROCESS_DETACH:
+        Tattler::g_timestampManager.Shutdown();
+        break;
     }
 
     return TRUE;
