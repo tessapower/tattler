@@ -7,6 +7,7 @@
 #include "imgui_impl_win32.h"
 #include "imgui_internal.h" // DockBuilder* API
 #include "viewer/d3d12_renderer.h"
+#include "viewer/imspinner.h"
 #include "viewer/process_launcher.h"
 #include "viewer/srv_descriptor_allocator.h"
 #include "viewer/style.h"
@@ -262,7 +263,14 @@ auto ViewerApp::RenderFrame() -> void
 
         const float startW =
             ImGui::CalcTextSize(ICON_FA_PLAY " Start").x + pad * 2;
-        const float centerW = startW + spacing;
+        const float stopW =
+            ImGui::CalcTextSize(ICON_FA_STOP " Stop ").x + pad * 2;
+        const float clearW =
+            ImGui::CalcTextSize(ICON_FA_TRASH " Clear").x + pad * 2;
+        const float spinnerW = 16.0f; // Spinner radius is 8, diameter is 16
+
+        // Calculate width for center group
+        const float centerW = spinnerW + spacing + stopW + spacing + clearW;
 
         const char* themeLabel =
             m_theme == Theme::RosePineDawn ? ICON_FA_SUN : ICON_FA_MOON;
@@ -283,6 +291,19 @@ auto ViewerApp::RenderFrame() -> void
         {
             ImGui::BeginDisabled();
         }
+
+        // Always reserve space for spinner to prevent shifting
+        if (!capturing)
+        {
+            ImGui::Dummy(ImVec2(spinnerW, 0));
+            ImGui::SameLine();
+        }
+        else
+        {
+            ImSpinner::SpinnerArcRotation("##capture_spinner", 8, 3, ImGui::GetColorU32(ImGuiCol_ButtonActive));
+            ImGui::SameLine();
+        }
+
         if (!capturing)
         {
             if (ImGui::Button(ICON_FA_PLAY " Start"))
