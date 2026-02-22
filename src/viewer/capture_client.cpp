@@ -72,6 +72,19 @@ auto CaptureClient::Start() -> void
 
 auto CaptureClient::Stop() -> void
 {
+    if (m_pipeThread.joinable())
+    {
+        // If the thread is blocked in ConnectNamedPipe waiting for a client,
+        // open a temporary connection to unblock it. If a real client is
+        // already connected this will fail harmlessly — Disconnect/Destroy
+        // below will then unblock the ReadFile in the Receive loop instead.
+        HANDLE dummy = CreateFileW(PipeProtocol::PIPE_NAME,
+                                   GENERIC_READ | GENERIC_WRITE,
+                                   0, nullptr, OPEN_EXISTING, 0, nullptr);
+        if (dummy != INVALID_HANDLE_VALUE)
+            CloseHandle(dummy);
+    }
+
     m_pipeServer.Disconnect();
     m_pipeServer.Destroy();
 
