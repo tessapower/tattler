@@ -113,6 +113,9 @@ static HRESULT WINAPI HookedD3D12CreateDevice(
     if (FAILED(hr) || !ppDevice)
         return hr;
 
+    if (s_origCreateCommandQueue)
+        return hr;
+
     ID3D12Device* device = static_cast<ID3D12Device*>(*ppDevice);
 
     // Init timestamp manager with device
@@ -171,6 +174,9 @@ static HRESULT WINAPI HookedCreateDXGIFactory2(UINT Flags, REFIID riid,
 
     // Return early if we failed to create the factory
     if (FAILED(hr) || !ppFactory)
+        return hr;
+
+    if (s_origCreateSwapChainForHwnd)
         return hr;
 
     IDXGIFactory2* factory2 = nullptr;
