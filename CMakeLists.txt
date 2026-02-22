@@ -16,12 +16,22 @@ option(TATTLER_BUILD_HOOK   "Build the Tattler hook DLL"           ON)
 
 # Detours (no cmake config file — find manually, vcpkg toolchain sets search paths)
 find_path(DETOURS_INCLUDE_DIR "detours/detours.h" REQUIRED)
-find_library(DETOURS_LIBRARY detours REQUIRED)
+find_library(DETOURS_LIBRARY_RELEASE detours REQUIRED
+    PATHS "${DETOURS_INCLUDE_DIR}/../lib"
+    NO_DEFAULT_PATH
+)
+find_library(DETOURS_LIBRARY_DEBUG detours REQUIRED
+    PATHS "${DETOURS_INCLUDE_DIR}/../debug/lib"
+    NO_DEFAULT_PATH
+)
 
 add_library(detours::detours STATIC IMPORTED)
 set_target_properties(detours::detours PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${DETOURS_INCLUDE_DIR}"
-    IMPORTED_LOCATION "${DETOURS_LIBRARY}"
+    IMPORTED_LOCATION_RELEASE         "${DETOURS_LIBRARY_RELEASE}"
+    IMPORTED_LOCATION_DEBUG           "${DETOURS_LIBRARY_DEBUG}"
+    MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE
+    MAP_IMPORTED_CONFIG_MINSIZEREL     RELEASE
 )
 
 if(TATTLER_BUILD_VIEWER)
@@ -71,7 +81,6 @@ if(TATTLER_BUILD_VIEWER)
     target_precompile_headers(tattler REUSE_FROM tattler_common)
     target_link_libraries(tattler PRIVATE
         tattler_common
-        detours::detours
         imgui::imgui
         d3d12.lib
         dxgi

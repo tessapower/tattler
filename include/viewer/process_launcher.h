@@ -8,8 +8,9 @@ namespace Tattler
 {
 
 /// <summary>
-/// Launches a target application with our hook injected via Detours. Handles
-/// the file picker and injection in one shot.
+/// Launches a target application with our hook DLL injected via
+/// CreateRemoteThread + LoadLibraryW. Handles the file picker and injection
+/// in one shot.
 /// </summary>
 class ProcessLauncher
 {
