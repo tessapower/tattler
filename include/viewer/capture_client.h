@@ -56,6 +56,12 @@ class CaptureClient
         return m_snapshot;
     }
 
+    auto ClearSnapshot() -> void
+    {
+        std::lock_guard lock(m_snapshotMutex);
+        m_snapshot = CaptureSnapshot{};
+    }
+
   private:
     PipeServer m_pipeServer;
     std::thread m_pipeThread;

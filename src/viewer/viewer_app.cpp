@@ -325,6 +325,23 @@ auto ViewerApp::RenderFrame() -> void
             ImGui::EndDisabled();
         }
 
+        // Clear button - only enabled when there's snapshot data
+        ImGui::SameLine();
+        auto snapshot = m_captureClient.GetSnapshot();
+        const bool hasData = !snapshot.frames.empty();
+        if (!hasData)
+        {
+            ImGui::BeginDisabled();
+        }
+        if (ImGui::Button(ICON_FA_TRASH " Clear"))
+        {
+            m_captureClient.ClearSnapshot();
+        }
+        if (!hasData)
+        {
+            ImGui::EndDisabled();
+        }
+
         // Connection status, theme toggle
         ImGui::SetCursorPosX(windowW - rightW - spacing);
 
