@@ -5,6 +5,7 @@
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_win32.h"
 #include "imgui_internal.h" // DockBuilder* API
+#include "common/capture_types.h"
 #include "viewer/d3d12_renderer.h"
 #include "viewer/process_launcher.h"
 #include "viewer/srv_descriptor_allocator.h"
@@ -240,7 +241,7 @@ auto ViewerApp::RenderFrame() -> void
                 m_captureClient.SendStartCapture();
         }
 
-        // Theme toggle — right-aligned
+        // Theme toggle button
         const char* themeLabel =
             m_theme == Theme::RosePineDawn ? ICON_FA_SUN : ICON_FA_MOON;
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() +
@@ -263,7 +264,7 @@ auto ViewerApp::RenderFrame() -> void
 
     // Build default layout once and imgui.ini takes over after first run.
     // DockSpaceOverViewport always creates the node, so we check IsLeafNode()
-    // to detect a fresh unsplit space rather than checking for nullptr.
+    // to detect a fresh unsplit space rather than checking for nullptr
     ImGuiDockNode* dockNode = ImGui::DockBuilderGetNode(dockspaceId);
     if (dockNode == nullptr || dockNode->IsLeafNode())
     {
