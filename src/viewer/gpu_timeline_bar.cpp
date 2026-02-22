@@ -1,11 +1,13 @@
 #include "stdafx.h"
 
 #include "imgui.h"
+#include "common/capture_types.h"
 #include "viewer/gpu_timeline_bar.h"
 #include "viewer/style.h"
 
 #include <algorithm>
 #include <cstdio>
+#include <cstdint>
 
 namespace Tattler
 {
