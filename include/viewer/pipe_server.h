@@ -50,10 +50,11 @@ class PipeServer : public PipeProtocol::Pipe
         return res;
     }
 
-    auto Disconnect() -> void override {
+    auto Disconnect() -> void override
+    {
         if (m_handle != INVALID_HANDLE_VALUE && m_handle != nullptr)
         {
-            FlushFileBuffers(m_handle);
+            CancelIoEx(m_handle, nullptr);
             DisconnectNamedPipe(m_handle);
         }
     }

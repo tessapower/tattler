@@ -37,8 +37,11 @@ auto CaptureClient::Start() -> void
         {
             while (!m_stopping)
             {
-                if (!m_pipeServer.Connect())
-                    break;
+                {
+                    std::lock_guard lock(m_pipeMutex);
+                    if (!m_pipeServer.Connect())
+                        break;
+                }
 
                 m_pipeConnected = true;
 
@@ -47,7 +50,27 @@ auto CaptureClient::Start() -> void
                     PipeProtocol::MessageType type;
                     std::vector<uint8_t> payload;
 
-                    if (!m_pipeServer.Receive(type, &payload))
+                    bool received;
+                    {
+                        std::lock_guard lock(m_pipeMutex);
+
+                        // Use PeekNamedPipe to avoid blocking indefinitely
+                        DWORD bytesAvail = 0;
+                        if (!PeekNamedPipe(m_pipeServer.GetHandle(), nullptr, 0, nullptr, &bytesAvail, nullptr))
+                            break; // pipe error
+
+                        if (bytesAvail == 0)
+                        {
+                            // No data available, sleep briefly and continue
+                            // This allows Send() calls from other threads to proceed
+                            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                            continue;
+                        }
+
+                        received = m_pipeServer.Receive(type, &payload);
+                    }
+
+                    if (!received)
                         break; // pipe closed or error
 
                     if (type == PipeProtocol::MessageType::CaptureData)
@@ -62,13 +85,18 @@ auto CaptureClient::Start() -> void
                 }
 
                 m_pipeConnected = false;
-                m_pipeServer.Disconnect(); // reset pipe handle for next client
+                {
+                    std::lock_guard lock(m_pipeMutex);
+                    m_pipeServer.Disconnect(); // reset pipe handle for next client
+                }
             }
         });
 }
 
 auto CaptureClient::Stop() -> void
 {
+    m_stopping = true;
+
     if (m_pipeThread.joinable())
     {
         // If the thread is blocked in ConnectNamedPipe waiting for a client,
@@ -82,8 +110,11 @@ auto CaptureClient::Stop() -> void
             CloseHandle(dummy);
     }
 
-    m_pipeServer.Disconnect();
-    m_pipeServer.Destroy();
+    {
+        std::lock_guard lock(m_pipeMutex);
+        m_pipeServer.Disconnect();
+        m_pipeServer.Destroy();
+    }
 
     if (m_pipeThread.joinable())
         m_pipeThread.join();

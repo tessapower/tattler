@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/capture_types.h"
 #include "viewer/capture_client.h"
 #include "viewer/frame_tree_panel.h"
 #include "viewer/gpu_timeline_bar.h"

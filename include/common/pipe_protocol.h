@@ -140,6 +140,8 @@ class Pipe
     /// </summary>
     virtual auto Disconnect() -> void = 0;
 
+    auto GetHandle() const -> HANDLE { return m_handle; }
+
   protected:
     HANDLE m_handle = INVALID_HANDLE_VALUE;
 };

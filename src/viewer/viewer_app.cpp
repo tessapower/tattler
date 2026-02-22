@@ -1,11 +1,11 @@
 #include "stdafx.h"
 
 #include "IconsFontAwesome6.h"
+#include "common/capture_types.h"
 #include "imgui.h"
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_win32.h"
 #include "imgui_internal.h" // DockBuilder* API
-#include "common/capture_types.h"
 #include "viewer/d3d12_renderer.h"
 #include "viewer/process_launcher.h"
 #include "viewer/srv_descriptor_allocator.h"

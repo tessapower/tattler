@@ -35,6 +35,15 @@ class CaptureClient
 
     auto SendStopCapture() -> void;
 
+    auto Disconnect() -> void
+    {
+        SendStopCapture();
+
+        // Protect Disconnect to coordinate with background thread
+        std::lock_guard lock(m_pipeMutex);
+        m_pipeServer.Disconnect();
+    }
+
     auto IsConnected() const -> bool
     {
         return m_pipeConnected;
@@ -52,6 +61,7 @@ class CaptureClient
     std::thread m_pipeThread;
     std::atomic<bool> m_pipeConnected = false;
     std::atomic<bool> m_stopping = false;
+    std::mutex m_pipeMutex;
     std::mutex m_snapshotMutex;
     CaptureSnapshot m_snapshot;
 };
