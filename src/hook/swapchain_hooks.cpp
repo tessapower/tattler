@@ -56,7 +56,7 @@ static HRESULT WINAPI HookedPresent(IDXGISwapChain* pThis, UINT SyncInterval,
         g_commandQueue->Signal(s_fence.Get(), s_fenceValue);
 
         // Block until the GPU has finished (ensures ResolveQueryData is done)
-        if (s_fence->GetCompletedValue() < s_fenceValue)
+        if (s_fenceEvent && s_fence->GetCompletedValue() < s_fenceValue)
         {
             s_fence->SetEventOnCompletion(s_fenceValue, s_fenceEvent);
             WaitForSingleObject(s_fenceEvent, INFINITE);
