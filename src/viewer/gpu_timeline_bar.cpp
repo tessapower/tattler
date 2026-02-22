@@ -68,7 +68,7 @@ void GpuTimelineBar::Draw(const CaptureSnapshot* snapshot,
 
     if (!snapshot || snapshot->frames.empty())
     {
-        ImGui::TextDisabled("No capture data :(");
+        ImGui::TextDisabled("No capture data.");
         ImGui::End();
         return;
     }
@@ -85,7 +85,7 @@ void GpuTimelineBar::Draw(const CaptureSnapshot* snapshot,
 
     if (minTs >= maxTs)
     {
-        ImGui::TextDisabled("No GPU timing data :(");
+        ImGui::TextDisabled("No GPU timing data.");
         ImGui::End();
         return;
     }
