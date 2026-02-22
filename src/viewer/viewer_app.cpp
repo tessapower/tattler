@@ -11,6 +11,8 @@
 #include "viewer/style.h"
 #include "viewer/viewer_app.h"
 
+#include <stdexcept>
+
 // Forward-declared in imgui_impl_win32.h behind a comment block
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM,
                                                              LPARAM);
