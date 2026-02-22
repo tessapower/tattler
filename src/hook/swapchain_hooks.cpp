@@ -5,9 +5,11 @@
 #include "hook/vtable_hooks.h"
 #include "hook/vtable_slots.h"
 
+#include <d3d12.h>
 #include <dxgi.h>
 
 #include <unordered_set>
+#include <wrl/client.h>
 
 namespace Tattler
 {
@@ -18,7 +20,7 @@ using PFN_Present = HRESULT(WINAPI*)(IDXGISwapChain*, UINT, UINT);
 
 static PFN_Present s_origPresent = nullptr;
 
-static ID3D12Fence* s_fence = nullptr;
+static Microsoft::WRL::ComPtr<ID3D12Fence> s_fence;
 static HANDLE s_fenceEvent = nullptr;
 static uint64_t s_fenceValue = 0;
 
@@ -32,14 +34,16 @@ static HRESULT WINAPI HookedPresent(IDXGISwapChain* pThis, UINT SyncInterval,
         // Lazy-initialize the fence on the first captured frame
         if (!s_fence)
         {
-            ID3D12Device* device = nullptr;
+            Microsoft::WRL::ComPtr<ID3D12Device> device;
             g_commandQueue->GetDevice(IID_PPV_ARGS(&device));
             device->CreateFence(0, D3D12_FENCE_FLAG_NONE,
                                 IID_PPV_ARGS(&s_fence));
-            device->Release();
+
             s_fenceEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+
             if (!s_fenceEvent)
-                s_fence = nullptr; // keep the two in sync; skip capture this frame
+                // Keep the two in sync, skip capture this frame
+                s_fence.Reset();
         }
 
         if (!s_fence)
@@ -49,7 +53,7 @@ static HRESULT WINAPI HookedPresent(IDXGISwapChain* pThis, UINT SyncInterval,
 
         // Signal the fence after all work submitted this frame
         ++s_fenceValue;
-        g_commandQueue->Signal(s_fence, s_fenceValue);
+        g_commandQueue->Signal(s_fence.Get(), s_fenceValue);
 
         // Block until the GPU has finished (ensures ResolveQueryData is done)
         if (s_fence->GetCompletedValue() < s_fenceValue)
