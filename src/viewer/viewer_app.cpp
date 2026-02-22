@@ -198,7 +198,9 @@ auto ViewerApp::InitImGui(float mainScale) -> bool
 auto ViewerApp::RenderFrame() -> void
 {
     if (!m_renderer->BeginFrame(m_hwnd))
+    {
         return;
+    }
 
     ImGui_ImplDX12_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -208,46 +210,116 @@ auto ViewerApp::RenderFrame() -> void
     // when the hook disconnects, allow re-launch
     const bool isConnected = m_captureClient.IsConnected();
     if (m_wasConnected && !isConnected)
+    {
         m_appLaunched = false;
+        m_capturing = false;
+    }
     m_wasConnected = isConnected;
 
-    // Toolbar
+    // Snapshot mutable state before drawing buttons so BeginDisabled /
+    // EndDisabled always see the same value.
+    const bool appLaunched = m_appLaunched;
+    const bool capturing = m_capturing;
+
+    //------------------------------------------------------------ TOOLBAR --//
     if (ImGui::BeginMainMenuBar())
     {
         // Disable the launch button while a hooked process is already running
-        if (m_appLaunched)
+        if (appLaunched)
+        {
             ImGui::BeginDisabled();
+        }
+
         if (ImGui::Button(ICON_FA_FOLDER_OPEN " Launch App"))
         {
             if (ProcessLauncher::Launch(m_hwnd))
                 m_appLaunched = true;
         }
-        if (m_appLaunched)
-            ImGui::EndDisabled();
 
-        // Status indicator
-        ImGui::SameLine();
-        if (isConnected)
-            ImGui::TextColored({0.4f, 0.8f, 0.4f, 1.0f},
-                               ICON_FA_CIRCLE " Connected");
-        else if (m_appLaunched)
-            ImGui::TextColored({0.9f, 0.7f, 0.1f, 1.0f},
-                               ICON_FA_CIRCLE " Waiting for hook...");
-
-        // Capture button
-        if (ImGui::Button(ICON_FA_PLAY " Capture"))
+        if (appLaunched)
         {
-            if (m_captureClient.IsConnected())
-                m_captureClient.SendStartCapture();
+            ImGui::EndDisabled();
         }
 
-        // Theme toggle button
+        // Disconnect button
+        if (!isConnected)
+        {
+            ImGui::BeginDisabled();
+        }
+        if (ImGui::Button(ICON_FA_EJECT " Disconnect"))
+        {
+            m_captureClient.Disconnect();
+        }
+        if (!isConnected)
+        {
+            ImGui::EndDisabled();
+        }
+
+        // Pre-calculate widths for center and right groups
+        const ImGuiStyle& style = ImGui::GetStyle();
+        const float pad = style.FramePadding.x;
+        const float spacing = style.ItemSpacing.x;
+
+        const float startW =
+            ImGui::CalcTextSize(ICON_FA_PLAY " Start").x + pad * 2;
+        const float centerW = startW + spacing;
+
         const char* themeLabel =
             m_theme == Theme::RosePineDawn ? ICON_FA_SUN : ICON_FA_MOON;
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() +
-                             ImGui::GetContentRegionAvail().x -
-                             ImGui::CalcTextSize(themeLabel).x -
-                             ImGui::GetStyle().FramePadding.x * 2.0f);
+        const char* statusLabel = isConnected ? ICON_FA_CIRCLE " Connected"
+                                  : m_appLaunched
+                                      ? ICON_FA_CIRCLE " Waiting for hook..."
+                                      : ICON_FA_CIRCLE " No connection";
+        const float themeW = ImGui::CalcTextSize(themeLabel).x + pad * 2;
+        const float statusW = ImGui::CalcTextSize(statusLabel).x;
+        const float rightW = statusW + spacing + themeW;
+
+        const float windowW = ImGui::GetWindowWidth();
+
+        // Center: Start / Stop Capture
+        ImGui::SetCursorPosX((windowW - centerW) / 2.0f);
+
+        if (!isConnected)
+        {
+            ImGui::BeginDisabled();
+        }
+        if (!capturing)
+        {
+            if (ImGui::Button(ICON_FA_PLAY " Start"))
+            {
+                m_captureClient.SendStartCapture();
+                m_capturing = true;
+            }
+        }
+        else
+        {
+            if (ImGui::Button(ICON_FA_STOP " Stop "))
+            {
+                m_captureClient.SendStopCapture();
+                m_capturing = false;
+            }
+        }
+        if (!isConnected)
+        {
+            ImGui::EndDisabled();
+        }
+
+        // Connection status, theme toggle
+        ImGui::SetCursorPosX(windowW - rightW - spacing);
+
+        if (isConnected)
+        {
+            ImGui::TextColored({0.4f, 0.8f, 0.4f, 1.0f}, statusLabel);
+        }
+        else if (m_appLaunched)
+        {
+            ImGui::TextColored({0.9f, 0.7f, 0.1f, 1.0f}, statusLabel);
+        }
+        else
+        {
+            ImGui::TextDisabled(statusLabel);
+        }
+
         if (ImGui::Button(themeLabel))
         {
             m_theme = (m_theme == Theme::RosePineDawn) ? Theme::RosePine
@@ -257,6 +329,7 @@ auto ViewerApp::RenderFrame() -> void
 
         ImGui::EndMainMenuBar();
     }
+    //-------------------------------------------------------- END TOOLBAR --//
 
     // Full-screen dock space below the menu bar
     ImGuiID dockspaceId =
