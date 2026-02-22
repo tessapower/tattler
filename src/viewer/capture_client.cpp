@@ -17,7 +17,9 @@ namespace Tattler
 CaptureClient::CaptureClient()
 {
     if (!m_pipeServer.Create())
+    {
         throw std::runtime_error("Failed to create pipe server");
+    }
 }
 
 CaptureClient::~CaptureClient()
@@ -56,14 +58,17 @@ auto CaptureClient::Start() -> void
 
                         // Use PeekNamedPipe to avoid blocking indefinitely
                         DWORD bytesAvail = 0;
-                        if (!PeekNamedPipe(m_pipeServer.GetHandle(), nullptr, 0, nullptr, &bytesAvail, nullptr))
+                        if (!PeekNamedPipe(m_pipeServer.GetHandle(), nullptr, 0,
+                                           nullptr, &bytesAvail, nullptr))
                             break; // pipe error
 
                         if (bytesAvail == 0)
                         {
                             // No data available, sleep briefly and continue
-                            // This allows Send() calls from other threads to proceed
-                            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                            // This allows Send() calls from other threads to
+                            // proceed
+                            std::this_thread::sleep_for(
+                                std::chrono::milliseconds(1));
                             continue;
                         }
 
@@ -71,7 +76,9 @@ auto CaptureClient::Start() -> void
                     }
 
                     if (!received)
+                    {
                         break; // pipe closed or error
+                    }
 
                     if (type == PipeProtocol::MessageType::CaptureData)
                     {
@@ -87,7 +94,8 @@ auto CaptureClient::Start() -> void
                 m_pipeConnected = false;
                 {
                     std::lock_guard lock(m_pipeMutex);
-                    m_pipeServer.Disconnect(); // reset pipe handle for next client
+                    m_pipeServer
+                        .Disconnect(); // reset pipe handle for next client
                 }
             }
         });
@@ -103,9 +111,9 @@ auto CaptureClient::Stop() -> void
         // open a temporary connection to unblock it. If a real client is
         // already connected this will fail harmlessly — Disconnect/Destroy
         // below will then unblock the ReadFile in the Receive loop instead.
-        HANDLE dummy = CreateFileW(PipeProtocol::PIPE_NAME,
-                                   GENERIC_READ | GENERIC_WRITE,
-                                   0, nullptr, OPEN_EXISTING, 0, nullptr);
+        HANDLE dummy =
+            CreateFileW(PipeProtocol::PIPE_NAME, GENERIC_READ | GENERIC_WRITE,
+                        0, nullptr, OPEN_EXISTING, 0, nullptr);
         if (dummy != INVALID_HANDLE_VALUE)
             CloseHandle(dummy);
     }
@@ -117,19 +125,25 @@ auto CaptureClient::Stop() -> void
     }
 
     if (m_pipeThread.joinable())
+    {
         m_pipeThread.join();
+    }
 }
 
 auto CaptureClient::SendStartCapture() -> void
 {
     if (m_pipeConnected)
+    {
         m_pipeServer.Send(PipeProtocol::MessageType::StartCapture, nullptr, 0);
+    }
 }
 
 auto CaptureClient::SendStopCapture() -> void
 {
     if (m_pipeConnected)
+    {
         m_pipeServer.Send(PipeProtocol::MessageType::StopCapture, nullptr, 0);
+    }
 }
 
 } // namespace Tattler

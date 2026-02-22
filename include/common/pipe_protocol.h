@@ -85,7 +85,8 @@ class Pipe
     /// <param name="type">Message type</param>
     /// <param name="data">Pointer to the payload data</param>
     /// <param name="size">Size of the payload data</param>
-    /// <returns>True if the message was successfully sent, false otherwise</returns>
+    /// <returns>True if the message was successfully sent, false
+    /// otherwise</returns>
     auto Send(PipeProtocol::MessageType type, const void* data,
               uint32_t size) const -> bool
     {
@@ -140,7 +141,10 @@ class Pipe
     /// </summary>
     virtual auto Disconnect() -> void = 0;
 
-    auto GetHandle() const -> HANDLE { return m_handle; }
+    auto GetHandle() const -> HANDLE
+    {
+        return m_handle;
+    }
 
   protected:
     HANDLE m_handle = INVALID_HANDLE_VALUE;
