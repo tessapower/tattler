@@ -6,7 +6,7 @@
 namespace PipeProtocol
 {
 
-static constexpr uint32_t BUFFER_SIZE = 64 * 1024;
+static constexpr uint32_t BUFFER_SIZE = 1024 * 1024;
 static constexpr const wchar_t* PIPE_NAME = L"\\\\.\\pipe\\tattler";
 
 enum class MessageType : uint32_t
