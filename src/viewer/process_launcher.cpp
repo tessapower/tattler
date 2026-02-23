@@ -82,14 +82,14 @@ auto ProcessLauncher::InjectAndLaunch(const std::wstring& exePath,
 
     // Allocate space in the target process for the DLL path string
     const size_t pathBytes = (dllPath.size() + 1) * sizeof(wchar_t);
-    LPVOID remotePath = VirtualAllocEx(procInfo.hProcess, nullptr, pathBytes,
-                                       MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    LPVOID remotePath =
+        VirtualAllocEx(procInfo.hProcess, nullptr, pathBytes,
+                       MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
     bool injected = false;
 
-    if (remotePath &&
-        WriteProcessMemory(procInfo.hProcess, remotePath, dllPath.c_str(),
-                           pathBytes, nullptr))
+    if (remotePath && WriteProcessMemory(procInfo.hProcess, remotePath,
+                                         dllPath.c_str(), pathBytes, nullptr))
     {
         // kernel32.dll is mapped at the same address in every process, so our
         // LoadLibraryW pointer is valid in the target process too
@@ -98,9 +98,9 @@ auto ProcessLauncher::InjectAndLaunch(const std::wstring& exePath,
 
         if (loadLibraryW)
         {
-            HANDLE remoteThread = CreateRemoteThread(
-                procInfo.hProcess, nullptr, 0, loadLibraryW, remotePath, 0,
-                nullptr);
+            HANDLE remoteThread =
+                CreateRemoteThread(procInfo.hProcess, nullptr, 0, loadLibraryW,
+                                   remotePath, 0, nullptr);
 
             if (remoteThread)
             {

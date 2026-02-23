@@ -19,7 +19,8 @@ auto WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
     }
     catch (const std::exception& e)
     {
-        MessageBoxA(nullptr, e.what(), "Tattler: Fatal Error", MB_OK | MB_ICONERROR);
+        MessageBoxA(nullptr, e.what(), "Tattler: Fatal Error",
+                    MB_OK | MB_ICONERROR);
         return EXIT_FAILURE;
     }
     catch (...)

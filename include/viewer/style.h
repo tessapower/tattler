@@ -5,7 +5,11 @@
 namespace Tattler
 {
 
-enum class Theme { RosePineDawn, RosePine };
+enum class Theme
+{
+    RosePineDawn,
+    RosePine
+};
 
 // All colours for a single Rose Pine variant
 struct Palette
@@ -57,7 +61,8 @@ inline constexpr Palette ROSE_PINE = {
 /// <summary> Returns the palette for the currently active theme. </summary>
 auto GetCurrentPalette() -> const Palette&;
 
-/// <summary> Apply a Rose Pine theme and rounded style to the active ImGui context. </summary>
+/// <summary> Apply a Rose Pine theme and rounded style to the active ImGui
+/// context. </summary>
 auto ApplyTheme(Theme theme) -> void;
 
 } // namespace Tattler

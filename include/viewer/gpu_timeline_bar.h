@@ -16,11 +16,12 @@ class GpuTimelineBar
     /// Draw the panel. Should be called between ImGui::NewFrame
     /// and ImGui::Render.
     /// </summary>
-    void Draw(const CaptureSnapshot* snapshot, const CapturedEvent* selectedEvent);
+    void Draw(const CaptureSnapshot* snapshot,
+              const CapturedEvent* selectedEvent);
 
   private:
-    float m_zoomLevel = 1.0f;  // 1.0 = 100%, higher = more zoomed in
-    float m_scrollOffset = 0.0f; // horizontal scroll position when zoomed
+    float m_zoomLevel = 1.0f;     // 1.0 = 100%, higher = more zoomed in
+    float m_scrollOffset = 0.0f;  // horizontal scroll position when zoomed
     int m_selectedFrameIndex = 0; // currently displayed frame
 };
 

@@ -53,8 +53,10 @@ struct SrvDescriptorAllocator
         int idx = m_freeIndices.back();
         m_freeIndices.pop_back();
 
-        outCpu->ptr = m_cpuStart.ptr + static_cast<SIZE_T>(idx) * m_incrementSize;
-        outGpu->ptr = m_gpuStart.ptr + static_cast<UINT64>(idx) * m_incrementSize;
+        outCpu->ptr =
+            m_cpuStart.ptr + static_cast<SIZE_T>(idx) * m_incrementSize;
+        outGpu->ptr =
+            m_gpuStart.ptr + static_cast<UINT64>(idx) * m_incrementSize;
     }
 
     /// <summary>
@@ -63,8 +65,10 @@ struct SrvDescriptorAllocator
     /// </summary>
     void Free(D3D12_CPU_DESCRIPTOR_HANDLE cpu, D3D12_GPU_DESCRIPTOR_HANDLE gpu)
     {
-        int cpu_idx = static_cast<int>((cpu.ptr - m_cpuStart.ptr) / m_incrementSize);
-        int gpu_idx = static_cast<int>((gpu.ptr - m_gpuStart.ptr) / m_incrementSize);
+        int cpu_idx =
+            static_cast<int>((cpu.ptr - m_cpuStart.ptr) / m_incrementSize);
+        int gpu_idx =
+            static_cast<int>((gpu.ptr - m_gpuStart.ptr) / m_incrementSize);
         assert(cpu_idx == gpu_idx);
 
         m_freeIndices.push_back(cpu_idx);

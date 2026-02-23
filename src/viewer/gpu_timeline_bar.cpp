@@ -7,7 +7,6 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <cstdio>
 
 namespace Tattler
 {

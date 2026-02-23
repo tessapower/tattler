@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/capture_types.h"
 #include "viewer/capture_client.h"
 #include "viewer/frame_tree_panel.h"
 #include "viewer/gpu_timeline_bar.h"
@@ -46,7 +45,7 @@ class ViewerApp
 
     auto InitWindow(float mainScale, LPCTSTR title) -> void;
 
-    auto CleanupWindow() -> void;
+    auto CleanupWindow() const -> void;
 
     static auto WINAPI HandleMsgSetup(HWND hwnd, UINT uMsg, WPARAM wParam,
                                       LPARAM lParam) noexcept -> LRESULT;

@@ -123,7 +123,7 @@ auto ViewerApp::InitWindow(float mainScale, LPCTSTR title) -> void
     }
 }
 
-auto ViewerApp::CleanupWindow() -> void
+auto ViewerApp::CleanupWindow() const -> void
 {
     if (m_hwnd)
     {
@@ -202,7 +202,8 @@ auto ViewerApp::InitImGui(float mainScale) -> bool
 auto ViewerApp::RenderFrame() -> void
 {
     // Snapshot capture data once per frame, before BeginFrame, so texture
-    // uploads (which flush the GPU queue) don't race with command list recording
+    // uploads (which flush the GPU queue) don't race with command list
+    // recording
     auto snapshot = m_captureClient.GetSnapshot();
 
     if (!m_renderer->BeginFrame(m_hwnd))
@@ -307,7 +308,9 @@ auto ViewerApp::RenderFrame() -> void
         }
         else
         {
-            ImSpinner::SpinnerArcRotation("##capture_spinner", 8, 3, ImGui::GetColorU32(ImGuiCol_ButtonActive));
+            ImSpinner::SpinnerArcRotation(
+                "##capture_spinner", 8, 3,
+                ImGui::GetColorU32(ImGuiCol_ButtonActive));
             ImGui::SameLine();
         }
 
@@ -418,7 +421,8 @@ auto ViewerApp::RenderFrame() -> void
             {
                 if (staged.frameIndex == selected->frameIndex)
                 {
-                    frameTexture = m_textureCache->Get(staged.frameIndex, staged);
+                    frameTexture =
+                        m_textureCache->Get(staged.frameIndex, staged);
                     break;
                 }
             }

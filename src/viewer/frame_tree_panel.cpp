@@ -93,7 +93,8 @@ void FrameTreePanel::Draw(const CaptureSnapshot* snapshot)
                  "Frame %u  (%zu events, %.2f us)###frame%d", frame.frameNumber,
                  frame.events.size(), totalUs, frameIdx);
 
-        ImGuiTreeNodeFlags flags = m_expandAll ? ImGuiTreeNodeFlags_DefaultOpen : 0;
+        ImGuiTreeNodeFlags flags =
+            m_expandAll ? ImGuiTreeNodeFlags_DefaultOpen : 0;
         if (ImGui::TreeNodeEx(nodeLabel, flags))
         {
             for (int eventIdx = 0;

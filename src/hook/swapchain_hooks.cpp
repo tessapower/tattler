@@ -44,8 +44,9 @@ static void CaptureBackbuffer(IDXGISwapChain* pSwapChain)
     // Lazy-init readback command allocator + list
     if (!s_readbackAllocator)
     {
-        if (FAILED(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
-                                                  IID_PPV_ARGS(&s_readbackAllocator))))
+        if (FAILED(device->CreateCommandAllocator(
+                D3D12_COMMAND_LIST_TYPE_DIRECT,
+                IID_PPV_ARGS(&s_readbackAllocator))))
             return;
         if (FAILED(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
                                              s_readbackAllocator.Get(), nullptr,
@@ -54,7 +55,8 @@ static void CaptureBackbuffer(IDXGISwapChain* pSwapChain)
         s_readbackCmdList->Close();
     }
 
-    // Get the current backbuffer index (IDXGISwapChain3 preferred; fall back to 0)
+    // Get the current backbuffer index (IDXGISwapChain3 preferred; fall back to
+    // 0)
     UINT idx = 0;
     {
         Microsoft::WRL::ComPtr<IDXGISwapChain3> swapChain3;
@@ -93,9 +95,10 @@ static void CaptureBackbuffer(IDXGISwapChain* pSwapChain)
         bufDesc.SampleDesc.Count = 1;
         bufDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
-        if (FAILED(device->CreateCommittedResource(&readbackHeap, D3D12_HEAP_FLAG_NONE,
-                                                   &bufDesc, D3D12_RESOURCE_STATE_COPY_DEST,
-                                                   nullptr, IID_PPV_ARGS(&s_readbackBuffer))))
+        if (FAILED(device->CreateCommittedResource(
+                &readbackHeap, D3D12_HEAP_FLAG_NONE, &bufDesc,
+                D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+                IID_PPV_ARGS(&s_readbackBuffer))))
             return;
         s_readbackBufferSize = totalBytes;
     }
@@ -125,7 +128,8 @@ static void CaptureBackbuffer(IDXGISwapChain* pSwapChain)
     s_readbackCmdList->CopyTextureRegion(&dstLoc, 0, 0, 0, &srcLoc, nullptr);
 
     D3D12_RESOURCE_BARRIER toPresent = toCopy;
-    std::swap(toPresent.Transition.StateBefore, toPresent.Transition.StateAfter);
+    std::swap(toPresent.Transition.StateBefore,
+              toPresent.Transition.StateAfter);
     s_readbackCmdList->ResourceBarrier(1, &toPresent);
 
     s_readbackCmdList->Close();
@@ -160,7 +164,8 @@ static void CaptureBackbuffer(IDXGISwapChain* pSwapChain)
     staged.pixels.resize(static_cast<size_t>(numRows) * dstRowBytes);
     const auto* src = static_cast<const uint8_t*>(mapped);
     for (UINT row = 0; row < numRows; ++row)
-        std::memcpy(staged.pixels.data() + row * dstRowBytes, src + row * srcRowPitch, dstRowBytes);
+        std::memcpy(staged.pixels.data() + row * dstRowBytes,
+                    src + row * srcRowPitch, dstRowBytes);
 
     D3D12_RANGE noWrite{0, 0};
     s_readbackBuffer->Unmap(0, &noWrite);

@@ -32,7 +32,8 @@ static DWORD WINAPI HookThreadProc(LPVOID)
 
 /// <summary>
 /// DLL entry point called by Windows when the DLL is loaded or unloaded.
-/// The loader lock is held during DllMain, so creating threads or calling Detours directly here can cause deadlocks.
+/// The loader lock is held during DllMain, so creating threads or calling
+/// Detours directly here can cause deadlocks.
 /// </summary>
 BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD reason, LPVOID)
 {
@@ -46,7 +47,10 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD reason, LPVOID)
         {
             HANDLE handle = CreateThread(nullptr, 0, Tattler::HookThreadProc,
                                          nullptr, 0, nullptr);
-            if (!handle) return FALSE;
+            if (!handle)
+            {
+                return FALSE;
+            }
             CloseHandle(handle);
         }
         break;

@@ -94,8 +94,8 @@ auto CaptureClient::Start() -> void
                 m_pipeConnected = false;
                 {
                     std::lock_guard lock(m_pipeMutex);
-                    m_pipeServer
-                        .Disconnect(); // reset pipe handle for next client
+                    // reset pipe handle for next client
+                    m_pipeServer.Disconnect();
                 }
             }
         });
