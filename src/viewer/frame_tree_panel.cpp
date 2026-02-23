@@ -67,6 +67,13 @@ void FrameTreePanel::Draw(const CaptureSnapshot* snapshot)
         return;
     }
 
+    // Toggle button for expanding/collapsing all frames
+    if (ImGui::Button(m_expandAll ? "Collapse All" : "Expand All"))
+    {
+        m_expandAll = !m_expandAll;
+    }
+    ImGui::Separator();
+
     for (int frameIdx = 0; frameIdx < static_cast<int>(snapshot->frames.size());
          ++frameIdx)
     {
@@ -86,7 +93,8 @@ void FrameTreePanel::Draw(const CaptureSnapshot* snapshot)
                  "Frame %u  (%zu events, %.2f ms)###frame%d", frame.frameNumber,
                  frame.events.size(), totalMs, frameIdx);
 
-        if (ImGui::TreeNodeEx(nodeLabel, ImGuiTreeNodeFlags_DefaultOpen))
+        ImGuiTreeNodeFlags flags = m_expandAll ? ImGuiTreeNodeFlags_DefaultOpen : 0;
+        if (ImGui::TreeNodeEx(nodeLabel, flags))
         {
             for (int eventIdx = 0;
                  eventIdx < static_cast<int>(frame.events.size()); ++eventIdx)

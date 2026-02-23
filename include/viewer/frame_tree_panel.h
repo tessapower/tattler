@@ -26,6 +26,7 @@ class FrameTreePanel
     int m_selectedFrame = -1;
     int m_selectedEvent = -1;
     const CaptureSnapshot* m_lastSnapshot = nullptr;
+    bool m_expandAll = false;
 };
 
 } // namespace Tattler
