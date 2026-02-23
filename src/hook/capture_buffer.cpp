@@ -29,21 +29,4 @@ auto CaptureBuffer::Flush() -> std::vector<CapturedEvent>
     return events;
 }
 
-auto CaptureBuffer::Reset() -> void
-{
-    // Lock mutex
-    std::lock_guard lock(m_mutex);
-
-    // Clear buffer
-    m_events.clear();
-}
-
-auto CaptureBuffer::Size() const -> size_t
-{
-    // Lock mutex to prevent events being added
-    std::lock_guard lock(m_mutex);
-
-    return m_events.size();
-}
-
 } // namespace Tattler

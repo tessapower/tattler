@@ -9,7 +9,7 @@ namespace Tattler
 {
 
 void TexturePreviewPanel::Draw(const CapturedEvent* selectedEvent,
-                               const CaptureSnapshot* /*snapshot*/)
+                               ImTextureID frameTexture)
 {
     ImGui::Begin("Details");
 

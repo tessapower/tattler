@@ -32,18 +32,6 @@ class CaptureBuffer
     /// </summary>
     auto Flush() -> std::vector<CapturedEvent>;
 
-    /// <summary>
-    /// Discards all accumulated events without returning them. Call at the
-    /// start of each new frame to clear stale data. Safe to call from any
-    /// thread!
-    /// </summary>
-    auto Reset() -> void;
-
-    /// <summary>
-    /// Returns the number of events currently in the buffer.
-    /// </summary>
-    auto Size() const -> size_t;
-
   private:
     mutable std::mutex m_mutex;
     std::vector<CapturedEvent> m_events;
