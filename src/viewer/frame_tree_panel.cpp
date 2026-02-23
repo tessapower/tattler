@@ -35,21 +35,21 @@ static const char* EventTypeName(EventType type)
 }
 
 /// <summary>
-/// Converts raw GPU timestamp ticks to wall-clock milliseconds using the
+/// Converts raw GPU timestamp ticks to wall-clock microseconds using the
 /// frequency reported by the GPU. Returns 0 if the frequency is unknown or
 /// the timestamps are inverted (which can happen on the first captured event).
 /// </summary>
 /// <param name="e">The event whose duration to calculate.</param>
 /// <param name="gpuFrequency">The GPU timestamp frequency in Hz.</param>
-/// <returns>The duration of the event in milliseconds, or 0 if it can't be
+/// <returns>The duration of the event in microseconds, or 0 if it can't be
 /// calculated.</returns>
-static double GpuDurationMs(const CapturedEvent& e, uint64_t gpuFrequency)
+static double GpuDurationUs(const CapturedEvent& e, uint64_t gpuFrequency)
 {
     if (gpuFrequency == 0 || e.timestampEnd <= e.timestampBegin)
         return 0.0;
 
     return static_cast<double>(e.timestampEnd - e.timestampBegin) /
-           static_cast<double>(gpuFrequency) * 1000.0;
+           static_cast<double>(gpuFrequency) * 1'000'000.0;
 }
 
 void FrameTreePanel::Draw(const CaptureSnapshot* snapshot)
@@ -81,17 +81,17 @@ void FrameTreePanel::Draw(const CaptureSnapshot* snapshot)
 
         // Sum all event durations so we can show the total GPU time in the
         // collapsible frame header without the user having to expand it
-        double totalMs = 0.0;
+        double totalUs = 0.0;
         for (const auto& e : frame.events)
-            totalMs += GpuDurationMs(e, frame.gpuFrequency);
+            totalUs += GpuDurationUs(e, frame.gpuFrequency);
 
         // ### suffix makes ImGui use only the part after ### as the
         // stable ID, so the visible label (which changes as data updates)
         // doesn't cause the tree node to collapse on every redraw
         char nodeLabel[64];
         snprintf(nodeLabel, sizeof(nodeLabel),
-                 "Frame %u  (%zu events, %.2f ms)###frame%d", frame.frameNumber,
-                 frame.events.size(), totalMs, frameIdx);
+                 "Frame %u  (%zu events, %.2f us)###frame%d", frame.frameNumber,
+                 frame.events.size(), totalUs, frameIdx);
 
         ImGuiTreeNodeFlags flags = m_expandAll ? ImGuiTreeNodeFlags_DefaultOpen : 0;
         if (ImGui::TreeNodeEx(nodeLabel, flags))
@@ -104,9 +104,9 @@ void FrameTreePanel::Draw(const CaptureSnapshot* snapshot)
                                  m_selectedEvent == eventIdx);
 
                 char rowLabel[64];
-                snprintf(rowLabel, sizeof(rowLabel), "[%u] %-16s  %.3f ms",
+                snprintf(rowLabel, sizeof(rowLabel), "[%u] %-16s  %.3f us",
                          event.eventIndex, EventTypeName(event.type),
-                         GpuDurationMs(event, frame.gpuFrequency));
+                         GpuDurationUs(event, frame.gpuFrequency));
 
                 if (ImGui::Selectable(rowLabel, selected))
                 {
