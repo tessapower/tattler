@@ -1,9 +1,11 @@
 #pragma once
 
+#include "common/capture_types.h"
 #include "viewer/capture_client.h"
 #include "viewer/frame_tree_panel.h"
 #include "viewer/gpu_timeline_bar.h"
 #include "viewer/style.h"
+#include "viewer/texture_cache.h"
 #include "viewer/texture_preview_panel.h"
 
 #include <memory>
@@ -76,6 +78,9 @@ class ViewerApp
 
     // Active colour theme toggled from the toolbar
     Theme m_theme = Theme::RosePine;
+
+    //------------------------------------------------------------ TEXTURES --//
+    std::unique_ptr<TextureCache> m_textureCache;
 };
 
 } // namespace Tattler

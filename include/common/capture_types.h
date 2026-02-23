@@ -30,10 +30,13 @@ enum class EventType : uint32_t
 struct StagedTexture
 {
     ResourceId sourceResource;
+    uint32_t frameIndex;
     uint32_t width, height;
     DXGI_FORMAT format;
-    std::vector<uint8_t> pixels; // CPU-side copy after readback
+    std::vector<uint8_t> pixels;
     uint32_t subresource;
+    std::wstring diskPath;
+    bool isOnDisk = false;
 };
 
 struct DrawParams

@@ -3,6 +3,8 @@
 #include "viewer/d3d12_renderer.h"
 #include "viewer/d3dx12.h"
 
+#include <cstring>
+
 namespace Tattler
 {
 auto D3D12Renderer::Init(HWND hwnd, UINT width, UINT height) -> bool
@@ -132,6 +134,19 @@ auto D3D12Renderer::Init(HWND hwnd, UINT width, UINT height) -> bool
     if (m_fenceEvent == nullptr)
         return false;
 
+    // Create separate fence for one-shot operations (uploads, resource frees)
+    if (FAILED(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE,
+                                     IID_PPV_ARGS(&m_flushFence))))
+    {
+        return false;
+    }
+
+    m_flushFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    if (m_flushFenceEvent == nullptr)
+    {
+        return false;
+    }
+
     // Get back buffer resources and create RTVs
     for (UINT i = 0; i < BUFFER_COUNT; i++)
     {
@@ -260,6 +275,11 @@ auto D3D12Renderer::Shutdown() -> void
         CloseHandle(m_fenceEvent);
         m_fenceEvent = nullptr;
     }
+    if (m_flushFenceEvent)
+    {
+        CloseHandle(m_flushFenceEvent);
+        m_flushFenceEvent = nullptr;
+    }
     if (m_swapChainWaitableObject)
     {
         CloseHandle(m_swapChainWaitableObject);
@@ -267,6 +287,118 @@ auto D3D12Renderer::Shutdown() -> void
     }
 
     // ComPtr destructors release all D3D12/DXGI objects automatically
+}
+
+auto D3D12Renderer::FlushQueue() -> void
+{
+    ++m_flushFenceValue;
+    m_commandQueue->Signal(m_flushFence.Get(), m_flushFenceValue);
+    m_flushFence->SetEventOnCompletion(m_flushFenceValue, m_flushFenceEvent);
+    WaitForSingleObject(m_flushFenceEvent, INFINITE);
+}
+
+auto D3D12Renderer::UploadTexture(const StagedTexture& staged,
+                                   D3D12_CPU_DESCRIPTOR_HANDLE srvCpu,
+                                   D3D12_GPU_DESCRIPTOR_HANDLE srvGpu)
+    -> Microsoft::WRL::ComPtr<ID3D12Resource>
+{
+    if (staged.pixels.empty() || staged.width == 0 || staged.height == 0)
+        return nullptr;
+
+    // Create the destination texture in DEFAULT heap
+    D3D12_RESOURCE_DESC texDesc{};
+    texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+    texDesc.Width = staged.width;
+    texDesc.Height = staged.height;
+    texDesc.DepthOrArraySize = 1;
+    texDesc.MipLevels = 1;
+    texDesc.Format = staged.format;
+    texDesc.SampleDesc.Count = 1;
+    texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+    texDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+    CD3DX12_HEAP_PROPERTIES defaultHeap(D3D12_HEAP_TYPE_DEFAULT);
+
+    Microsoft::WRL::ComPtr<ID3D12Resource> texture;
+    if (FAILED(m_device->CreateCommittedResource(
+            &defaultHeap, D3D12_HEAP_FLAG_NONE, &texDesc,
+            D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&texture))))
+        return nullptr;
+
+    // Get copyable footprint to compute upload buffer layout
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
+    UINT numRows = 0;
+    UINT64 rowSizeBytes = 0;
+    UINT64 totalBytes = 0;
+    m_device->GetCopyableFootprints(&texDesc, 0, 1, 0, &footprint, &numRows,
+                                    &rowSizeBytes, &totalBytes);
+
+    // Create upload buffer in UPLOAD heap
+    CD3DX12_HEAP_PROPERTIES uploadHeap(D3D12_HEAP_TYPE_UPLOAD);
+    CD3DX12_RESOURCE_DESC uploadBufDesc = CD3DX12_RESOURCE_DESC::Buffer(totalBytes);
+
+    Microsoft::WRL::ComPtr<ID3D12Resource> uploadBuffer;
+    if (FAILED(m_device->CreateCommittedResource(
+            &uploadHeap, D3D12_HEAP_FLAG_NONE, &uploadBufDesc,
+            D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+            IID_PPV_ARGS(&uploadBuffer))))
+        return nullptr;
+
+    // Copy pixel rows into the upload buffer (source has no padding, dest has alignment padding)
+    void* mapped = nullptr;
+    if (FAILED(uploadBuffer->Map(0, nullptr, &mapped)) || !mapped)
+        return nullptr;
+    const UINT srcRowBytes = static_cast<UINT>(rowSizeBytes);
+    const UINT dstRowPitch = footprint.Footprint.RowPitch;
+    auto* dst = static_cast<uint8_t*>(mapped);
+    const auto* src = staged.pixels.data();
+    for (UINT row = 0; row < numRows; ++row)
+        std::memcpy(dst + row * dstRowPitch, src + row * srcRowBytes, srcRowBytes);
+    uploadBuffer->Unmap(0, nullptr);
+
+    // Record upload commands on a temporary command list
+    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> uploadAlloc;
+    if (FAILED(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                                IID_PPV_ARGS(&uploadAlloc))))
+        return nullptr;
+
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> uploadCmdList;
+    if (FAILED(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                           uploadAlloc.Get(), nullptr,
+                                           IID_PPV_ARGS(&uploadCmdList))))
+        return nullptr;
+
+    D3D12_TEXTURE_COPY_LOCATION srcLoc{};
+    srcLoc.pResource = uploadBuffer.Get();
+    srcLoc.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+    srcLoc.PlacedFootprint = footprint;
+
+    D3D12_TEXTURE_COPY_LOCATION dstLoc{};
+    dstLoc.pResource = texture.Get();
+    dstLoc.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+    dstLoc.SubresourceIndex = 0;
+
+    uploadCmdList->CopyTextureRegion(&dstLoc, 0, 0, 0, &srcLoc, nullptr);
+
+    CD3DX12_RESOURCE_BARRIER toSrv = CD3DX12_RESOURCE_BARRIER::Transition(
+        texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    uploadCmdList->ResourceBarrier(1, &toSrv);
+    uploadCmdList->Close();
+
+    ID3D12CommandList* cmdLists[] = {uploadCmdList.Get()};
+    m_commandQueue->ExecuteCommandLists(1, cmdLists);
+    FlushQueue(); // wait for upload to complete before returning
+
+    // Create SRV
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+    srvDesc.Format = staged.format;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Texture2D.MipLevels = 1;
+    m_device->CreateShaderResourceView(texture.Get(), &srvDesc, srvCpu);
+
+    return texture;
 }
 
 } // namespace Tattler

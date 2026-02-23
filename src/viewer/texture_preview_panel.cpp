@@ -1,9 +1,11 @@
 #include "stdafx.h"
 
+#include "common/capture_types.h"
 #include "imgui.h"
 #include "viewer/texture_preview_panel.h"
 
 #include <type_traits>
+#include <variant>
 
 namespace Tattler
 {
@@ -20,12 +22,24 @@ void TexturePreviewPanel::Draw(const CapturedEvent* selectedEvent,
         return;
     }
 
-    // --- Event identity ---
+    // Frame texture preview
+    ImGui::SeparatorText("Frame");
+    if (frameTexture != 0)
+    {
+        const ImVec2 avail = ImGui::GetContentRegionAvail();
+        ImGui::Image(frameTexture, {avail.x, avail.x * 9.0f / 16.0f});
+    }
+    else
+    {
+        ImGui::TextDisabled("No frame texture available for this frame.");
+    }
+
+    // Event identity
     ImGui::SeparatorText("Event");
     ImGui::Text("Frame:  %u", selectedEvent->frameIndex);
     ImGui::Text("Index:  %u", selectedEvent->eventIndex);
 
-    // --- Type ---
+    // Type
     const char* typeName = "Unknown";
     switch (selectedEvent->type)
     {
@@ -56,18 +70,18 @@ void TexturePreviewPanel::Draw(const CapturedEvent* selectedEvent,
     }
     ImGui::Text("Type:   %s", typeName);
 
-    // --- GPU timing ---
+    // GPU timing
     ImGui::SeparatorText("GPU Timing");
     ImGui::Text("Begin:  %llu ticks", selectedEvent->timestampBegin);
     ImGui::Text("End:    %llu ticks", selectedEvent->timestampEnd);
 
-    // --- Bound resources ---
+    // Bound resources
     ImGui::SeparatorText("Resources");
     ImGui::Text("Command list:   0x%016llX", selectedEvent->commandList);
     ImGui::Text("Pipeline state: 0x%016llX", selectedEvent->pipelineState);
     ImGui::Text("Render target:  0x%016llX", selectedEvent->renderTarget);
 
-    // --- Params ---
+    // Params
     ImGui::SeparatorText("Parameters");
     std::visit(
         [](const auto& p)

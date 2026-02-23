@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/capture_types.h"
 #include "viewer/srv_descriptor_allocator.h"
 
 #include <d3d12.h>
@@ -78,6 +79,25 @@ class D3D12Renderer
         return m_commandList.Get();
     }
 
+    /// <summary>
+    /// Upload CPU pixel data from a StagedTexture to a new DEFAULT-heap
+    /// D3D12 texture and create an SRV at the given descriptor handles.
+    /// Blocks until the upload is complete. Returns nullptr on failure.
+    /// The caller must keep the returned resource alive for as long as the
+    /// SRV is in use.
+    /// </summary>
+    auto UploadTexture(const StagedTexture& staged,
+                       D3D12_CPU_DESCRIPTOR_HANDLE srvCpu,
+                       D3D12_GPU_DESCRIPTOR_HANDLE srvGpu)
+        -> Microsoft::WRL::ComPtr<ID3D12Resource>;
+
+    /// <summary>
+    /// Signal a fence on the command queue and block until the GPU has
+    /// executed all previously submitted work. Safe to call outside of
+    /// BeginFrame/EndFrame.
+    /// </summary>
+    auto FlushQueue() -> void;
+
   private:
     // Core DXGI/D3D12 objects
     Microsoft::WRL::ComPtr<ID3D12Device> m_device;
@@ -105,6 +125,11 @@ class D3D12Renderer
     Microsoft::WRL::ComPtr<ID3D12Fence> m_fence;
     HANDLE m_fenceEvent = nullptr;
     UINT64 m_fenceValues[BUFFER_COUNT] = {};
+
+    // Separate fence for one-shot operations (texture uploads, resource frees)
+    Microsoft::WRL::ComPtr<ID3D12Fence> m_flushFence;
+    HANDLE m_flushFenceEvent = nullptr;
+    UINT64 m_flushFenceValue = 0;
 
     // Lets us wait for the swap chain to be ready before rendering
     HANDLE m_swapChainWaitableObject = nullptr;

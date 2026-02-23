@@ -45,6 +45,7 @@ auto Serialize(const CaptureSnapshot& snapshot, std::vector<uint8_t>* outBuffer)
     for (const auto& rtSnapshot : snapshot.renderTargetSnapshots)
     {
         Write(*outBuffer, rtSnapshot.sourceResource);
+        Write(*outBuffer, rtSnapshot.frameIndex);
         Write(*outBuffer, rtSnapshot.width);
         Write(*outBuffer, rtSnapshot.height);
         Write(*outBuffer, static_cast<uint32_t>(rtSnapshot.format));
@@ -52,6 +53,13 @@ auto Serialize(const CaptureSnapshot& snapshot, std::vector<uint8_t>* outBuffer)
         outBuffer->insert(outBuffer->end(), rtSnapshot.pixels.begin(),
                           rtSnapshot.pixels.end());
         Write(*outBuffer, rtSnapshot.subresource);
+        Write(*outBuffer, rtSnapshot.isOnDisk);
+        if (rtSnapshot.isOnDisk)
+        {
+            Write(*outBuffer, static_cast<uint32_t>(rtSnapshot.diskPath.size()));
+            for (wchar_t c : rtSnapshot.diskPath)
+                Write(*outBuffer, c);
+        }
     }
 
     return true;
@@ -169,6 +177,7 @@ auto Deserialize(const std::vector<uint8_t>& buffer, CaptureSnapshot* outSnapsho
     for (auto& rtSnapshot : renderTargetSnapshots)
     {
         if (!Read(buffer, offset, rtSnapshot.sourceResource)) return false;
+        if (!Read(buffer, offset, rtSnapshot.frameIndex))     return false;
         if (!Read(buffer, offset, rtSnapshot.width))          return false;
         if (!Read(buffer, offset, rtSnapshot.height))         return false;
         if (!Read(buffer, offset, rtSnapshot.format))         return false;
@@ -184,6 +193,21 @@ auto Deserialize(const std::vector<uint8_t>& buffer, CaptureSnapshot* outSnapsho
         offset += pixelCount;
 
         if (!Read(buffer, offset, rtSnapshot.subresource)) return false;
+        if (!Read(buffer, offset, rtSnapshot.isOnDisk))    return false;
+
+        if (rtSnapshot.isOnDisk)
+        {
+            uint32_t pathLen = 0;
+            if (!Read(buffer, offset, pathLen)) return false;
+
+            rtSnapshot.diskPath.resize(pathLen);
+            for (uint32_t i = 0; i < pathLen; ++i)
+            {
+                wchar_t c;
+                if (!Read(buffer, offset, c)) return false;
+                rtSnapshot.diskPath[i] = c;
+            }
+        }
     }
 
     outSnapshot->captureDurationSec    = captureDurationSec;

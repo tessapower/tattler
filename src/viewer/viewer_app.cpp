@@ -11,8 +11,10 @@
 #include "viewer/process_launcher.h"
 #include "viewer/srv_descriptor_allocator.h"
 #include "viewer/style.h"
+#include "viewer/texture_cache.h"
 #include "viewer/viewer_app.h"
 
+#include <memory>
 #include <stdexcept>
 
 // Forward-declared in imgui_impl_win32.h behind a comment block
@@ -24,6 +26,7 @@ namespace Tattler
 ViewerApp::ViewerApp()
 {
     m_renderer = std::make_unique<D3D12Renderer>();
+    m_textureCache = std::make_unique<TextureCache>(m_renderer.get(), 512);
 }
 
 // Defined here (not in header) because unique_ptr needs the full D3D12Renderer
@@ -198,6 +201,10 @@ auto ViewerApp::InitImGui(float mainScale) -> bool
 
 auto ViewerApp::RenderFrame() -> void
 {
+    // Snapshot capture data once per frame, before BeginFrame, so texture
+    // uploads (which flush the GPU queue) don't race with command list recording
+    auto snapshot = m_captureClient.GetSnapshot();
+
     if (!m_renderer->BeginFrame(m_hwnd))
     {
         return;
@@ -327,7 +334,6 @@ auto ViewerApp::RenderFrame() -> void
 
         // Clear button - only enabled when there's snapshot data
         ImGui::SameLine();
-        auto snapshot = m_captureClient.GetSnapshot();
         const bool hasData = !snapshot.frames.empty();
         if (!hasData)
         {
@@ -335,6 +341,7 @@ auto ViewerApp::RenderFrame() -> void
         }
         if (ImGui::Button(ICON_FA_TRASH " Clear"))
         {
+            m_textureCache->Clear();
             m_captureClient.ClearSnapshot();
         }
         if (!hasData)
@@ -399,11 +406,25 @@ auto ViewerApp::RenderFrame() -> void
 
     // Draw panels
     {
-        auto snapshot = m_captureClient.GetSnapshot();
         m_frameTree.Draw(&snapshot);
         const CapturedEvent* selected = m_frameTree.GetSelectedEvent();
         m_gpuTimeline.Draw(&snapshot, selected);
-        m_details.Draw(selected, &snapshot);
+
+        // Find texture for selected event's frame
+        ImTextureID frameTexture = 0;
+        if (selected)
+        {
+            for (const auto& staged : snapshot.renderTargetSnapshots)
+            {
+                if (staged.frameIndex == selected->frameIndex)
+                {
+                    frameTexture = m_textureCache->Get(staged.frameIndex, staged);
+                    break;
+                }
+            }
+        }
+
+        m_details.Draw(selected, frameTexture);
     }
 
     ImGui::Render();

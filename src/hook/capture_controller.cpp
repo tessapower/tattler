@@ -6,6 +6,9 @@
 #include "hook/capture_controller.h"
 
 #include <cstdint>
+#include <filesystem>
+#include <format>
+#include <fstream>
 #include <utility>
 #include <vector>
 
@@ -30,6 +33,8 @@ auto CaptureController::Run() -> void
         {
             m_snapshot = {};
             m_frameIndex = 0;
+            m_textureMemoryBytes = 0;
+            m_tempDirectory.clear();
             LARGE_INTEGER qpc, freq;
             QueryPerformanceCounter(&qpc);
             QueryPerformanceFrequency(&freq);
@@ -121,6 +126,48 @@ auto CaptureController::EndFrame(const std::vector<uint64_t>& timestampResults,
 
     m_lastFrameTimeUs = nowUs;
     ++m_frameIndex;
+}
+
+auto CaptureController::AddTexture(StagedTexture tex) -> void
+{
+    tex.frameIndex = m_frameIndex;
+
+    const size_t texSizeBytes = tex.pixels.size();
+    const size_t currentMemoryMB = m_textureMemoryBytes / (1024 * 1024);
+
+    // First 100 frames (or until we hit 512MB): keep in memory
+    if (m_snapshot.renderTargetSnapshots.size() < MAX_IN_MEMORY_FRAMES &&
+        currentMemoryMB < MAX_TEXTURE_MEMORY_MB)
+    {
+        m_textureMemoryBytes += texSizeBytes;
+        m_snapshot.renderTargetSnapshots.push_back(std::move(tex));
+        return;
+    }
+
+    // Subsequent frames: write to disk to avoid OOM
+    if (m_tempDirectory.empty())
+    {
+        wchar_t tempPath[MAX_PATH];
+        GetTempPathW(MAX_PATH, tempPath);
+        m_tempDirectory = std::wstring(tempPath) + L"tattler_capture\\";
+        std::filesystem::create_directories(m_tempDirectory);
+    }
+
+    std::wstring filename =
+        std::format(L"{}frame_{:06}.bin", m_tempDirectory, m_frameIndex);
+
+    std::ofstream file(filename, std::ios::binary);
+    if (file)
+    {
+        file.write(reinterpret_cast<const char*>(tex.pixels.data()),
+                   texSizeBytes);
+
+        tex.diskPath = filename;
+        tex.pixels.clear();
+        tex.isOnDisk = true;
+
+        m_snapshot.renderTargetSnapshots.push_back(std::move(tex));
+    }
 }
 
 } // namespace Tattler

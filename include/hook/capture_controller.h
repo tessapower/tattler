@@ -61,7 +61,16 @@ class CaptureController
     auto EndFrame(const std::vector<uint64_t>& timestampResults,
                   uint64_t frequency) -> void;
 
+    /// <summary>
+    /// Stores a readback texture. First 100 frames (up to 512MB) are kept in
+    /// memory. Subsequent frames are written to disk to avoid OOM.
+    /// </summary>
+    auto AddTexture(StagedTexture tex) -> void;
+
   private:
+    static constexpr size_t MAX_IN_MEMORY_FRAMES = 100;
+    static constexpr size_t MAX_TEXTURE_MEMORY_MB = 512;
+
     PipeClient m_pipeClient;
     std::atomic<bool> m_pipeConnected = false;
     std::atomic<bool> m_isCapturing = false;
@@ -70,6 +79,8 @@ class CaptureController
     uint32_t m_frameIndex = 0;
     uint64_t m_captureStartTimeUs = 0;
     uint64_t m_lastFrameTimeUs = 0;
+    size_t m_textureMemoryBytes = 0;
+    std::wstring m_tempDirectory;
 };
 
 } // namespace Tattler
