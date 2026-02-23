@@ -40,7 +40,7 @@ class ViewerApp
     HWND m_hwnd = nullptr;
     HINSTANCE m_hinstance = nullptr;
     UINT m_width = 960;
-    UINT m_height = 540;
+    UINT m_height = 740;
     static constexpr LPCTSTR m_className = TEXT("ViewerAppWindowClass");
 
     auto InitWindow(float mainScale, LPCTSTR title) -> void;
