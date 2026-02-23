@@ -5,6 +5,7 @@
 #include "hook/pipe_client.h"
 
 #include <atomic>
+#include <string>
 
 namespace Tattler
 {
@@ -70,6 +71,12 @@ class CaptureController
   private:
     static constexpr size_t MAX_IN_MEMORY_FRAMES = 100;
     static constexpr size_t MAX_TEXTURE_MEMORY_MB = 512;
+    // Stop after 10k frames
+    static constexpr size_t MAX_CAPTURE_FRAMES = 10000;
+    // Stop if single frame exceeds 100k events
+    static constexpr size_t MAX_EVENTS_PER_FRAME = 100000;
+    // Stop if event data exceeds 1GB
+    static constexpr size_t MAX_TOTAL_EVENT_MEMORY_MB = 1024;
 
     PipeClient m_pipeClient;
     std::atomic<bool> m_pipeConnected = false;
@@ -80,7 +87,28 @@ class CaptureController
     uint64_t m_captureStartTimeUs = 0;
     uint64_t m_lastFrameTimeUs = 0;
     size_t m_textureMemoryBytes = 0;
+    size_t m_eventMemoryBytes = 0;
     std::wstring m_tempDirectory;
+
+    /// <summary>
+    /// Estimates the memory footprint of a captured event, including its
+    /// type-specific parameters. Used for tracking total event memory usage
+    /// against the MAX_TOTAL_EVENT_MEMORY_MB limit.
+    /// </summary>
+    /// <param name="event">The event to measure.</param>
+    /// <returns>The estimated size in bytes.</returns>
+    auto EstimateEventSize(const CapturedEvent& event) const -> size_t;
+
+    /// <summary>
+    /// Checks whether the capture has exceeded any of its memory or frame
+    /// limits. If a limit is breached, automatically stops the capture and
+    /// flushes remaining data to the viewer.
+    /// </summary>
+    /// <param name="frameEventCount">Number of events in the current
+    /// frame.</param>
+    /// <returns>True if capture should continue, false if it was
+    /// auto-stopped.</returns>
+    auto CheckMemoryLimits(size_t frameEventCount) -> bool;
 };
 
 } // namespace Tattler

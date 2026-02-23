@@ -9,7 +9,6 @@
 #include <mutex>
 #include <stdexcept>
 #include <thread>
-#include <utility>
 #include <vector>
 
 namespace Tattler
@@ -86,7 +85,22 @@ auto CaptureClient::Start() -> void
                         if (Deserialize(payload, &snapshot))
                         {
                             std::lock_guard lock(m_snapshotMutex);
-                            m_snapshot = std::move(snapshot);
+
+                            // Append new frames to existing snapshot
+                            // instead of replacing
+                            m_snapshot.captureDurationSec =
+                                snapshot.captureDurationSec;
+                            m_snapshot.frames.insert(
+                                m_snapshot.frames.end(),
+                                std::make_move_iterator(
+                                    snapshot.frames.begin()),
+                                std::make_move_iterator(snapshot.frames.end()));
+                            m_snapshot.renderTargetSnapshots.insert(
+                                m_snapshot.renderTargetSnapshots.end(),
+                                std::make_move_iterator(
+                                    snapshot.renderTargetSnapshots.begin()),
+                                std::make_move_iterator(
+                                    snapshot.renderTargetSnapshots.end()));
                         }
                     }
                 }
