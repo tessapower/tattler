@@ -103,6 +103,9 @@ static void RecordEvent(ID3D12GraphicsCommandList* cmdList, EventType type,
     event.params = params;
     event.timestampBegin = beginSlot; // patched later with real ticks
     event.timestampEnd = endSlot;
+    event.commandList = reinterpret_cast<ResourceId>(cmdList);
+    event.pipelineState = 0; // TODO: Capture pipeline state when available
+    event.renderTarget = 0;  // TODO: Capture render target when available
     /// NOTE TO SELF:
     // frameIndex/eventIndex will be filled in by the capture controller!
 
