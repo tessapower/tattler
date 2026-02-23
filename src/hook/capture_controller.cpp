@@ -14,6 +14,12 @@
 
 namespace Tattler
 {
+CaptureController::~CaptureController()
+{
+    if (!m_tempDirectory.empty())
+        std::filesystem::remove_all(m_tempDirectory);
+}
+
 auto CaptureController::Run() -> void
 {
     if (!m_pipeClient.Connect())

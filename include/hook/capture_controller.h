@@ -16,7 +16,7 @@ class CaptureController
 {
   public:
     CaptureController() = default;
-    ~CaptureController() = default;
+    ~CaptureController();
 
     /// <summary>
     /// Starts the capture process.
