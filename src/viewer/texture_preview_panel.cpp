@@ -10,28 +10,28 @@
 namespace Tattler
 {
 
-void TexturePreviewPanel::Draw(const CapturedEvent* selectedEvent,
-                               ImTextureID frameTexture)
+auto TexturePreviewPanel::Draw(const CapturedEvent* selectedEvent,
+                               ImTextureID frameTexture) -> void
 {
     ImGui::Begin("Details");
 
-    if (!selectedEvent)
-    {
-        ImGui::TextDisabled("Select an event to see details.");
-        ImGui::End();
-        return;
-    }
-
-    // Frame texture preview
-    ImGui::SeparatorText("Frame");
+    // Show frame texture if available, even without event selection
     if (frameTexture != 0)
     {
+        ImGui::SeparatorText("Frame");
         const ImVec2 avail = ImGui::GetContentRegionAvail();
         ImGui::Image(frameTexture, {avail.x, avail.x * 9.0f / 16.0f});
     }
-    else
+
+    // Only show event details if an event is actually selected
+    if (!selectedEvent)
     {
-        ImGui::TextDisabled("No frame texture available for this frame.");
+        if (frameTexture == 0)
+        {
+            ImGui::TextDisabled("Select a frame or event to see details.");
+        }
+        ImGui::End();
+        return;
     }
 
     // Event identity

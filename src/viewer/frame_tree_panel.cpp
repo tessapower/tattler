@@ -9,7 +9,7 @@
 namespace Tattler
 {
 
-static const char* EventTypeName(EventType type)
+static auto EventTypeName(EventType type) -> const char*
 {
     switch (type)
     {
@@ -43,7 +43,7 @@ static const char* EventTypeName(EventType type)
 /// <param name="gpuFrequency">The GPU timestamp frequency in Hz.</param>
 /// <returns>The duration of the event in microseconds, or 0 if it can't be
 /// calculated.</returns>
-static double GpuDurationUs(const CapturedEvent& e, uint64_t gpuFrequency)
+static auto GpuDurationUs(const CapturedEvent& e, uint64_t gpuFrequency) -> double
 {
     if (gpuFrequency == 0 || e.timestampEnd <= e.timestampBegin)
         return 0.0;
@@ -52,8 +52,10 @@ static double GpuDurationUs(const CapturedEvent& e, uint64_t gpuFrequency)
            static_cast<double>(gpuFrequency) * 1'000'000.0;
 }
 
-void FrameTreePanel::Draw(const CaptureSnapshot* snapshot)
+auto FrameTreePanel::Draw(const CaptureSnapshot* snapshot) -> Action
 {
+    Action action;
+
     // Cache the snapshot pointer so we can validate indices against the same
     // data we rendered with this frame
     m_lastSnapshot = snapshot;
@@ -64,13 +66,15 @@ void FrameTreePanel::Draw(const CaptureSnapshot* snapshot)
     {
         ImGui::TextDisabled("No capture data.");
         ImGui::End();
-        return;
+        return action;
     }
 
     // Toggle button for expanding/collapsing all frames
     if (ImGui::Button(m_expandAll ? "Collapse All" : "Expand All"))
     {
         m_expandAll = !m_expandAll;
+        if (!m_expandAll)
+            m_pendingCollapseAll = true;
     }
     ImGui::Separator();
 
@@ -93,10 +97,26 @@ void FrameTreePanel::Draw(const CaptureSnapshot* snapshot)
                  "Frame %u  (%zu events, %.2f us)###frame%d", frame.frameNumber,
                  frame.events.size(), totalUs, frameIdx);
 
-        ImGuiTreeNodeFlags flags =
-            m_expandAll ? ImGuiTreeNodeFlags_DefaultOpen : 0;
-        if (ImGui::TreeNodeEx(nodeLabel, flags))
+        const bool isPendingOpen = (m_pendingOpenFrame == frameIdx);
+
+        // Force open/close based on button state or one-shot requests.
+        // SetNextItemOpen with ImGuiCond_Always overrides user-toggled state.
+        if (m_pendingCollapseAll)
+            ImGui::SetNextItemOpen(false, ImGuiCond_Always);
+        else if (m_expandAll || (m_pendingSync && m_selectedFrame == frameIdx) ||
+                 isPendingOpen)
+            ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+
+        if (ImGui::TreeNodeEx(nodeLabel, 0))
         {
+            // Report FrameActivated only when the user manually expands the
+            // node (not when we programmatically open it)
+            if (ImGui::IsItemToggledOpen() && !m_pendingSync && !isPendingOpen &&
+                !m_expandAll)
+            {
+                action = {Action::Type::FrameActivated, frameIdx, -1, nullptr};
+            }
+
             for (int eventIdx = 0;
                  eventIdx < static_cast<int>(frame.events.size()); ++eventIdx)
             {
@@ -111,26 +131,56 @@ void FrameTreePanel::Draw(const CaptureSnapshot* snapshot)
 
                 if (ImGui::Selectable(rowLabel, selected))
                 {
-                    // Clicking an already-selected row clears the selection,
-                    // restoring the timeline to unfiltered view
-                    if (selected)
-                    {
-                        m_selectedFrame = -1;
-                        m_selectedEvent = -1;
-                    }
-                    else
+                    // Clicking an already-selected row does nothing
+                    if (!selected)
                     {
                         m_selectedFrame = frameIdx;
                         m_selectedEvent = eventIdx;
+                        action = {Action::Type::EventSelected, frameIdx,
+                                  eventIdx, &event};
                     }
+                }
+
+                if (m_pendingSync && m_selectedFrame == frameIdx &&
+                    m_selectedEvent == eventIdx)
+                {
+                    ImGui::SetScrollHereY();
+                    m_pendingSync = false;
                 }
             }
 
             ImGui::TreePop();
         }
+
+        // Clear the one-shot open request after the node has been processed
+        if (isPendingOpen)
+            m_pendingOpenFrame = -1;
     }
 
+    // One-shot flags are consumed after a single pass through all nodes
+    m_pendingCollapseAll = false;
+
     ImGui::End();
+    return action;
+}
+
+auto FrameTreePanel::SetSelection(uint32_t frameIndex, uint32_t eventIndex) -> void
+{
+    m_selectedFrame = static_cast<int>(frameIndex);
+    m_selectedEvent = static_cast<int>(eventIndex);
+    m_pendingSync = true;
+}
+
+auto FrameTreePanel::ClearSelection() -> void
+{
+    m_selectedFrame = -1;
+    m_selectedEvent = -1;
+    m_pendingSync = false;
+}
+
+auto FrameTreePanel::ExpandFrame(int frameIndex) -> void
+{
+    m_pendingOpenFrame = frameIndex;
 }
 
 auto FrameTreePanel::GetSelectedEvent() const -> const CapturedEvent*

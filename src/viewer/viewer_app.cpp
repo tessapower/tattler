@@ -409,17 +409,58 @@ auto ViewerApp::RenderFrame() -> void
 
     // Draw panels
     {
-        m_frameTree.Draw(&snapshot);
-        const CapturedEvent* selected = m_frameTree.GetSelectedEvent();
-        m_gpuTimeline.Draw(&snapshot, selected);
+        const auto treeAction = m_frameTree.Draw(&snapshot);
+        const auto timelineAction = m_gpuTimeline.Draw(&snapshot);
 
-        // Find texture for selected event's frame
+        // Handle frame-tree interactions
+        switch (treeAction.type)
+        {
+        case FrameTreePanel::Action::Type::FrameActivated:
+            m_currentFrameIndex = treeAction.frameIndex;
+            m_gpuTimeline.SyncToFrame(treeAction.frameIndex);
+            m_gpuTimeline.SetHighlight(nullptr);
+            m_frameTree.ClearSelection();
+            break;
+        case FrameTreePanel::Action::Type::EventSelected:
+            m_currentFrameIndex = treeAction.frameIndex;
+            m_gpuTimeline.SyncToFrame(treeAction.frameIndex);
+            m_gpuTimeline.SetHighlight(treeAction.event);
+            break;
+        default:
+            break;
+        }
+
+        // Handle timeline interactions
+        switch (timelineAction.type)
+        {
+        case GpuTimelineBar::Action::Type::FrameChanged:
+            m_currentFrameIndex = timelineAction.frameIndex;
+            m_frameTree.ClearSelection();
+            m_frameTree.ExpandFrame(timelineAction.frameIndex);
+            break;
+        case GpuTimelineBar::Action::Type::EventClicked:
+            m_currentFrameIndex =
+                static_cast<int>(timelineAction.event->frameIndex);
+            m_frameTree.SetSelection(timelineAction.event->frameIndex,
+                                     timelineAction.event->eventIndex);
+            break;
+        case GpuTimelineBar::Action::Type::EmptySpaceClicked:
+            m_frameTree.ClearSelection();
+            break;
+        default:
+            break;
+        }
+
+        const CapturedEvent* selected = m_frameTree.GetSelectedEvent();
+
+        // Find texture for the current frame (independent of event selection)
         ImTextureID frameTexture = 0;
-        if (selected)
+        if (m_currentFrameIndex >= 0)
         {
             for (const auto& staged : snapshot.renderTargetSnapshots)
             {
-                if (staged.frameIndex == selected->frameIndex)
+                if (staged.frameIndex ==
+                    static_cast<uint32_t>(m_currentFrameIndex))
                 {
                     frameTexture =
                         m_textureCache->Get(staged.frameIndex, staged);

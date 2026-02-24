@@ -20,7 +20,7 @@ class TexturePreviewPanel
     /// no selection.</param>
     /// <param name="frameTexture">The ImGui texture ID for the selected event's
     /// render target, or 0 if no texture is available.</param>
-    void Draw(const CapturedEvent* selectedEvent, ImTextureID frameTexture);
+    auto Draw(const CapturedEvent* selectedEvent, ImTextureID frameTexture) -> void;
 };
 
 } // namespace Tattler

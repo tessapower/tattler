@@ -74,6 +74,7 @@ class ViewerApp
     FrameTreePanel m_frameTree;
     GpuTimelineBar m_gpuTimeline;
     TexturePreviewPanel m_details;
+    int m_currentFrameIndex = -1; // frame whose texture is shown
 
     // Active colour theme toggled from the toolbar
     Theme m_theme = Theme::RosePine;
