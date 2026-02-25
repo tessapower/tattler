@@ -41,6 +41,14 @@ using PFN_CreateCommandList = HRESULT(WINAPI*)(
     ID3D12CommandAllocator* pCommandAllocator,
     ID3D12PipelineState* pInitialState, REFIID riid, void** ppCommandList);
 
+using PFN_CreateGraphicsPipelineState = HRESULT(WINAPI*)(
+    ID3D12Device* pThis, const D3D12_GRAPHICS_PIPELINE_STATE_DESC* pDesc,
+    REFIID riid, void** ppPipelineState);
+
+using PFN_CreateComputePipelineState = HRESULT(WINAPI*)(
+    ID3D12Device* pThis, const D3D12_COMPUTE_PIPELINE_STATE_DESC* pDesc,
+    REFIID riid, void** ppPipelineState);
+
 using PFN_CreateSwapChainForHwnd = HRESULT(WINAPI*)(
     IDXGIFactory2* pThis, IUnknown* pDevice, HWND hWnd,
     const DXGI_SWAP_CHAIN_DESC1* pDesc,
@@ -49,6 +57,8 @@ using PFN_CreateSwapChainForHwnd = HRESULT(WINAPI*)(
 
 static PFN_CreateCommandQueue s_origCreateCommandQueue = nullptr;
 static PFN_CreateCommandList s_origCreateCommandList = nullptr;
+static PFN_CreateGraphicsPipelineState s_origCreateGraphicsPipelineState = nullptr;
+static PFN_CreateComputePipelineState s_origCreateComputePipelineState = nullptr;
 static PFN_CreateSwapChainForHwnd s_origCreateSwapChainForHwnd = nullptr;
 
 //------------------------------------------------------------------ HOOKS --//
@@ -98,6 +108,48 @@ static HRESULT WINAPI HookedCreateCommandList(
 }
 
 /// <summary>
+/// Called whenever the game creates a graphics pipeline state. Creates the
+/// PSO normally and logs it for tracking purposes.
+/// </summary>
+static HRESULT WINAPI HookedCreateGraphicsPipelineState(
+    ID3D12Device* pThis, const D3D12_GRAPHICS_PIPELINE_STATE_DESC* pDesc,
+    REFIID riid, void** ppPipelineState)
+{
+    HRESULT hr =
+        s_origCreateGraphicsPipelineState(pThis, pDesc, riid, ppPipelineState);
+
+    // Return early if we failed to create the PSO
+    if (FAILED(hr) || !ppPipelineState)
+        return hr;
+
+    // Track the PSO address for future reference
+    // (Currently just pass-through; can add tracking later if needed)
+
+    return hr;
+}
+
+/// <summary>
+/// Called whenever the game creates a compute pipeline state. Creates the
+/// PSO normally and logs it for tracking purposes.
+/// </summary>
+static HRESULT WINAPI HookedCreateComputePipelineState(
+    ID3D12Device* pThis, const D3D12_COMPUTE_PIPELINE_STATE_DESC* pDesc,
+    REFIID riid, void** ppPipelineState)
+{
+    HRESULT hr =
+        s_origCreateComputePipelineState(pThis, pDesc, riid, ppPipelineState);
+
+    // Return early if we failed to create the PSO
+    if (FAILED(hr) || !ppPipelineState)
+        return hr;
+
+    // Track the PSO address for future reference
+    // (Currently just pass-through; can add tracking later if needed)
+
+    return hr;
+}
+
+/// <summary>
 /// Creates the device normally, then hooks the device's vtable to intercept
 /// CreateCommandQueue and CreateCommandList so we can hook future objects.
 /// </summary>
@@ -129,6 +181,18 @@ static HRESULT WINAPI HookedD3D12CreateDevice(
         VTableHooks::HookVTableEntry<PFN_CreateCommandQueue>(
             vtable, VTableSlots::Device::CreateCommandQueue,
             HookedCreateCommandQueue);
+
+    // Hook CreateGraphicsPipelineState
+    s_origCreateGraphicsPipelineState =
+        VTableHooks::HookVTableEntry<PFN_CreateGraphicsPipelineState>(
+            vtable, VTableSlots::Device::CreateGraphicsPipelineState,
+            HookedCreateGraphicsPipelineState);
+
+    // Hook CreateComputePipelineState
+    s_origCreateComputePipelineState =
+        VTableHooks::HookVTableEntry<PFN_CreateComputePipelineState>(
+            vtable, VTableSlots::Device::CreateComputePipelineState,
+            HookedCreateComputePipelineState);
 
     // Hook CreateCommandList
     s_origCreateCommandList =

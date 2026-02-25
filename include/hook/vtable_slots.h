@@ -21,6 +21,9 @@ namespace VTableSlots
 namespace Device
 {
 inline constexpr int CreateCommandQueue = 8;
+inline constexpr int CreateCommandAllocator = 9;
+inline constexpr int CreateGraphicsPipelineState = 10;
+inline constexpr int CreateComputePipelineState = 11;
 inline constexpr int CreateCommandList = 12;
 } // namespace Device
 
@@ -52,8 +55,10 @@ inline constexpr int DrawIndexedInstanced = 13;
 inline constexpr int Dispatch = 14;
 inline constexpr int CopyResource = 17;
 inline constexpr int ResourceBarrier = 26;
+inline constexpr int OMSetRenderTargets = 33;
 inline constexpr int ClearDepthStencilView = 47;
 inline constexpr int ClearRenderTargetView = 48;
+inline constexpr int SetPipelineState = 57;
 } // namespace CmdList
 
 /// ID3D12CommandQueue vtable slots.

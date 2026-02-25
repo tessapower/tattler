@@ -8,6 +8,7 @@
 
 #include <d3d12.h>
 
+#include <unordered_map>
 #include <unordered_set>
 
 namespace Tattler
@@ -17,6 +18,18 @@ namespace Tattler
 // Should be checked before writing any slots!!
 
 static std::unordered_set<void**> s_hookedVTables;
+
+/// <summary>
+/// Tracks the current pipeline state and render targets for each command list.
+/// </summary>
+struct CommandListState
+{
+    ResourceId currentPipelineState = 0;
+    ResourceId currentRenderTarget = 0; // Primary RTV
+};
+
+static std::unordered_map<ID3D12GraphicsCommandList*, CommandListState>
+    s_commandListStates;
 
 // -----------------------------------------------------ORIGINAL FUNCTIONS --//
 using PFN_Close = HRESULT(WINAPI*)(ID3D12GraphicsCommandList*);
@@ -46,6 +59,13 @@ using PFN_ClearDepthStencilView = void(WINAPI*)(ID3D12GraphicsCommandList*,
                                                 D3D12_CLEAR_FLAGS, FLOAT, UINT8,
                                                 UINT, const D3D12_RECT*);
 
+using PFN_SetPipelineState = void(WINAPI*)(ID3D12GraphicsCommandList*,
+                                            ID3D12PipelineState*);
+
+using PFN_OMSetRenderTargets = void(WINAPI*)(
+    ID3D12GraphicsCommandList*, UINT, const D3D12_CPU_DESCRIPTOR_HANDLE*, BOOL,
+    const D3D12_CPU_DESCRIPTOR_HANDLE*);
+
 static PFN_Close s_origClose = nullptr;
 static PFN_DrawInstanced s_origDrawInstanced = nullptr;
 static PFN_DrawIndexedInstanced s_origDrawIndexedInstanced = nullptr;
@@ -54,6 +74,8 @@ static PFN_CopyResource s_origCopyResource = nullptr;
 static PFN_ResourceBarrier s_origResourceBarrier = nullptr;
 static PFN_ClearRenderTargetView s_origClearRenderTargetView = nullptr;
 static PFN_ClearDepthStencilView s_origClearDepthStencilView = nullptr;
+static PFN_SetPipelineState s_origSetPipelineState = nullptr;
+static PFN_OMSetRenderTargets s_origOMSetRenderTargets = nullptr;
 
 //---------------------------------------------------------------- HELPERS --//
 
@@ -98,14 +120,17 @@ static void RecordEvent(ID3D12GraphicsCommandList* cmdList, EventType type,
     // Insert end timestamp
     g_timestampManager.InsertTimestamp(cmdList, endSlot);
 
+    // Get current state for this command list
+    const auto& state = s_commandListStates[cmdList];
+
     CapturedEvent event{};
     event.type = type;
     event.params = params;
     event.timestampBegin = beginSlot; // patched later with real ticks
     event.timestampEnd = endSlot;
     event.commandList = reinterpret_cast<ResourceId>(cmdList);
-    event.pipelineState = 0; // TODO: Capture pipeline state when available
-    event.renderTarget = 0;  // TODO: Capture render target when available
+    event.pipelineState = state.currentPipelineState;
+    event.renderTarget = state.currentRenderTarget;
     /// NOTE TO SELF:
     // frameIndex/eventIndex will be filled in by the capture controller!
 
@@ -231,6 +256,41 @@ static void WINAPI HookedClearDepthStencilView(
                 });
 }
 
+static void WINAPI HookedSetPipelineState(ID3D12GraphicsCommandList* pThis,
+                                          ID3D12PipelineState* pPipelineState)
+{
+    // Track the current pipeline state
+    s_commandListStates[pThis].currentPipelineState =
+        reinterpret_cast<ResourceId>(pPipelineState);
+
+    // Call the original function
+    s_origSetPipelineState(pThis, pPipelineState);
+}
+
+static void WINAPI
+HookedOMSetRenderTargets(ID3D12GraphicsCommandList* pThis, UINT NumRenderTargetDescriptors,
+                         const D3D12_CPU_DESCRIPTOR_HANDLE* pRenderTargetDescriptors,
+                         BOOL RTsSingleHandleToDescriptorRange,
+                         const D3D12_CPU_DESCRIPTOR_HANDLE* pDepthStencilDescriptor)
+{
+    // Track the first render target (if any)
+    if (NumRenderTargetDescriptors > 0 && pRenderTargetDescriptors)
+    {
+        s_commandListStates[pThis].currentRenderTarget =
+            pRenderTargetDescriptors[0].ptr;
+    }
+    else
+    {
+        s_commandListStates[pThis].currentRenderTarget = 0;
+    }
+
+    // Call the original function
+    s_origOMSetRenderTargets(pThis, NumRenderTargetDescriptors,
+                            pRenderTargetDescriptors,
+                            RTsSingleHandleToDescriptorRange,
+                            pDepthStencilDescriptor);
+}
+
 //---------------------------------------------------------------- INSTALL --//
 
 auto InstallCommandListHooks(ID3D12GraphicsCommandList* cmdList) -> void
@@ -299,6 +359,22 @@ auto InstallCommandListHooks(ID3D12GraphicsCommandList* cmdList) -> void
             VTableHooks::HookVTableEntry<PFN_ClearDepthStencilView>(
                 vtable, VTableSlots::CmdList::ClearDepthStencilView,
                 HookedClearDepthStencilView);
+    }
+
+    if (!s_origSetPipelineState)
+    {
+        s_origSetPipelineState =
+            VTableHooks::HookVTableEntry<PFN_SetPipelineState>(
+                vtable, VTableSlots::CmdList::SetPipelineState,
+                HookedSetPipelineState);
+    }
+
+    if (!s_origOMSetRenderTargets)
+    {
+        s_origOMSetRenderTargets =
+            VTableHooks::HookVTableEntry<PFN_OMSetRenderTargets>(
+                vtable, VTableSlots::CmdList::OMSetRenderTargets,
+                HookedOMSetRenderTargets);
     }
 }
 
